@@ -20,7 +20,7 @@ export default function FloatingButtons() {
   return (
     <>
       <a
-        href="https://wa.me/910000000000"
+        href="https://wa.me/9995267659"
         target="_blank"
         rel="noopener noreferrer"
         style={{
