@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import CircularText from "./CircularText";
+import HomeBg from "../assets/ayurveda-hero1.png";
 
 export default function Hero() {
   const scrollTo = (href) => {
@@ -21,15 +22,14 @@ export default function Hero() {
       }}
     >
       {/* Background */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(135deg, #2d3b2a 0%, #3d4f35 30%, #2a3527 60%, #1e2b1c 100%)",
-          zIndex: 0,
-        }}
-      />
+      <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+        <img 
+          src={HomeBg.src || HomeBg} 
+          alt="Home Background" 
+          style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+          className="bg-animate"
+        />
+      </div>
 
       {/* Radial glow */}
       <div
@@ -54,7 +54,7 @@ export default function Hero() {
       />
 
       {/* Decorative leaf SVG */}
-      <svg
+      {/* <svg
         style={{
           position: "absolute",
           right: "-5%",
@@ -77,7 +77,7 @@ export default function Hero() {
         <path d="M80 250 Q250 320 420 250" stroke="#C9B79C" strokeWidth="1" opacity="0.4" />
         <path d="M90 350 Q250 410 410 350" stroke="#C9B79C" strokeWidth="1" opacity="0.4" />
         <path d="M120 430 Q250 480 380 430" stroke="#C9B79C" strokeWidth="1" opacity="0.35" />
-      </svg>
+      </svg> */}
 
       {/* Circular spinning text – top-right */}
       <motion.div
@@ -113,12 +113,33 @@ export default function Hero() {
         <motion.img
           src="/absoluteayur.png"
           alt="Absolute Ayurveda Logo"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          style={{ height: "125px", width: "auto", margin: "25px auto 10px", opacity: 0.9 }}
+          initial={{ opacity: 0, y: 40, scale: 0.9 }}
+          animate={{
+            opacity: 1,
+            y: [0, -12, 0],        // up → down
+            scale: [1, 1.06, 1]    // pop effect
+          }}
+          transition={{
+            opacity: { duration: 0.6 },   // only for first load
+            y: {
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            },
+            scale: {
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }
+          }}
+          style={{
+            height: "125px",
+            width: "auto",
+            margin: "25px auto 10px",
+            opacity: 0.95
+          }}
+          className="rounded-lg backdrop-blur-sm border border-white/10"
         />
-
         <motion.span
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}

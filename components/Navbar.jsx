@@ -1,17 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const links = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
   { label: "Healers", href: "#doctors" },
   { label: "Facilities", href: "#facilities" },
-  { label: "Courses", href: "#courses" },
+  { label: "Course", href: "/course" },
+  { label: "Packages", href: "/packages" },
   { label: "Contact", href: "#contact" },
 ];
 
 export default function Navbar() {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -23,6 +26,14 @@ export default function Navbar() {
 
   const scrollTo = (href) => {
     setMenuOpen(false);
+    if (href.startsWith("/")) {
+      router.push(href);
+      return;
+    }
+    if (typeof window !== "undefined" && window.location.pathname !== "/") {
+      router.push("/" + href);
+      return;
+    }
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
@@ -56,7 +67,9 @@ export default function Navbar() {
           style={{
             display: "flex",
             alignItems: "center",
+            cursor: "pointer"
           }}
+          onClick={() => scrollTo("/")}
         >
           <img src="/absoluteayur.png" alt="Absolute Ayurveda" style={{ height: "60px", width: "auto" }} />
         </div>

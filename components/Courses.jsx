@@ -1,26 +1,44 @@
 "use client";
 
 import Reveal from "./Reveal";
+import { useRouter } from "next/navigation";
 
 const courses = [
   {
     num: "01",
-    name: "Ayurvedic Massage Therapy",
-    desc: "Master the ancient art of Abhyanga and specialized Ayurvedic massage traditions from Kerala's healing lineage.",
+    name: "Ayurveda Massage Workshop",
+    desc: "You will be capable of giving general body massage",
+    duration: "10 hours (2h per day)",
   },
   {
     num: "02",
-    name: "Traditional Healing Treatments",
-    desc: "Study classical Panchakarma protocols, herbal preparations, and traditional treatment modalities used for centuries.",
+    name: "Ayurveda Cooking Workshop",
+    desc: "You will be capable of preparing ayurvedic diet followed food",
+    duration: "10 hours (2h per day)",
   },
   {
     num: "03",
-    name: "Lifestyle & Wellness Guidance",
-    desc: "Learn to counsel others on seasonal routines, dietary principles, yoga integration, and conscious daily living practices effectively.",
+    name: "Basic Ayurveda Workshop",
+    desc: "You will be capable of doing prakriti analysis",
+    duration: "24 hours (2h per day)",
+  },
+  {
+    num: "04",
+    name: "Intermediate Ayurveda Workshop",
+    desc: "You will be capable of giving diet advice and massage",
+    duration: "40 hours (3h per day)",
+  },
+  {
+    num: "05",
+    name: "Advanced Ayurveda Workshop",
+    desc: "You will be capable of preparing medicines and giving massages",
+    duration: "70 hours (3h per day)",
   },
 ];
 
 export default function Courses() {
+  const router = useRouter();
+
   return (
     <section
       id="courses"
@@ -48,58 +66,81 @@ export default function Courses() {
           </p>
         </Reveal>
 
-        {/* Courses grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: "1px",
-            marginTop: "60px",
-            background: "rgba(255,255,255,0.1)",
-          }}
-        >
-          {courses.map((c, i) => (
-            <Reveal key={c.num} delay={i * 0.12}>
+        {/* Courses Marquee */}
+        <Reveal delay={0.4}>
+          <div
+            style={{
+              marginTop: "60px",
+              overflow: "hidden",
+              position: "relative",
+              background: "rgba(255,255,255,0.1)",
+            }}
+          >
+            <style>{`
+              @keyframes marquee-courses {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+              }
+              .marquee-wrapper:hover .marquee-content {
+                animation-play-state: paused;
+              }
+            `}</style>
+            <div className="marquee-wrapper" style={{ display: "flex" }}>
               <div
+                className="marquee-content"
                 style={{
-                  background: "#1A1A1A",
-                  padding: "48px 36px",
-                  transition: "background 0.4s",
-                  cursor: "default",
+                  display: "flex",
+                  animation: "marquee-courses 30s linear infinite",
+                  width: "max-content",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#222")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#1A1A1A")}
               >
-                <div
-                  style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontSize: "48px",
-                    fontWeight: 400,
-                    color: "rgba(201,183,156,0.22)",
-                    marginBottom: "16px",
-                    lineHeight: 1,
-                  }}
-                >
-                  {c.num}
-                </div>
-                <h3
-                  style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontSize: "22px",
-                    fontWeight: 400,
-                    color: "white",
-                    marginBottom: "12px",
-                  }}
-                >
-                  {c.name}
-                </h3>
-                <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>
-                  {c.desc}
-                </p>
+                {[...courses, ...courses].map((c, i) => (
+                  <div
+                    key={`${c.num}-${i}`}
+                    style={{
+                      flexShrink: 0,
+                      width: "320px",
+                      background: "#1A1A1A",
+                      padding: "48px 36px",
+                      transition: "background 0.4s",
+                      cursor: "default",
+                      marginRight: "1px",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#222")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "#1A1A1A")}
+                  >
+                    <div
+                      style={{
+                        fontFamily: "'Playfair Display', serif",
+                        fontSize: "48px",
+                        fontWeight: 400,
+                        color: "rgba(201,183,156,0.22)",
+                        marginBottom: "16px",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {c.num}
+                    </div>
+                    <h3
+                      style={{
+                        fontFamily: "'Playfair Display', serif",
+                        fontSize: "22px",
+                        fontWeight: 400,
+                        color: "white",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      {c.name}
+                    </h3>
+                    <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>
+                      {c.desc}
+                    </p>
+                  </div>
+                ))}
               </div>
-            </Reveal>
-          ))}
-        </div>
+            </div>
+          </div>
+        </Reveal>
 
         {/* CTA */}
         <Reveal delay={0.3}>
@@ -117,10 +158,7 @@ export default function Courses() {
             </p>
             <button
               className="outline-btn"
-              onClick={() => {
-                const el = document.querySelector("#contact");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              }}
+              onClick={() => router.push("/course")}
             >
               Enquire About Courses
             </button>
