@@ -3,7 +3,7 @@ import { useState } from "react";
 import Reveal from "./Reveal";
 
 const contactDetails = [
-  { label: "Location", value: "Kerala, India" },
+  { label: "Location", value: "Temple Road (padinjarae nada)\nVarkala, 695141\nKerala, India" },
   {
     label: "Available For",
     value: "Outpatient Consultations\nHealing Retreats\nAyurveda School Enrollment",

@@ -19,7 +19,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: `${pkg.title} | Ayurveda Package`,
       description: pkg.description,
-      url: `https://absoluteayurveda.com/packages/${slug}`,
+      url: `https://absoluteayur.com/packages/${slug}`,
       images: [
         {
           url: pkg.image,

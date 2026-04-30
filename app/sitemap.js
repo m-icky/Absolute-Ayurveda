@@ -1,7 +1,7 @@
 import { packagesData } from "./packages/data";
 
 export default function sitemap() {
-  const baseUrl = "https://absoluteayurveda.com";
+  const baseUrl = "https://absoluteayur.com";
 
   // Base routes
   const routes = ["", "/packages", "/course"].map((route) => ({

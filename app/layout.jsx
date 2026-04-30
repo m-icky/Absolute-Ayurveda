@@ -3,7 +3,7 @@ import Preloader from "../components/Preloader";
 import FloatingButtons from "../components/FloatingButtons";
 
 export const metadata = {
-  metadataBase: new URL("https://absoluteayurveda.com"),
+  metadataBase: new URL("https://absoluteayur.com"),
   title: {
     default: "Ayurveda Healing & Lifestyle Clinic | Natural Wellness Since 2008",
     template: "%s | Absolute Ayurveda"
@@ -25,7 +25,7 @@ export const metadata = {
   openGraph: {
     title: "Ayurveda Healing & Lifestyle Clinic | Natural Wellness Since 2008",
     description: "Discover holistic healing with Ayurveda. Since 2008, our clinic has guided people to balance body, mind, and spirit through natural treatments, meditation, yoga, and lifestyle care.",
-    url: "https://absoluteayurveda.com",
+    url: "https://absoluteayur.com",
     siteName: "Absolute Ayurveda",
     images: [
       {
@@ -54,6 +54,11 @@ export const metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
+  },
+  icons: {
+    icon: "/absoluteayur.png",
+    shortcut: "/absoluteayur.png",
+    apple: "/absoluteayur.png",
   },
 };
 

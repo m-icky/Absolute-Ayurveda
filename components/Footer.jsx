@@ -6,7 +6,7 @@ import { MdEmail } from "react-icons/md";
 const footerLinks = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
-  { label: "Our Healers", href: "#doctors" },
+  { label: "Healers", href: "#doctors" },
   { label: "Facilities", href: "#facilities" },
   { label: "Courses", href: "/course" },
   { label: "Packages", href: "/packages" },

@@ -7,7 +7,7 @@ export const metadata = {
   openGraph: {
     title: "Ayurveda Courses & Training | Absolute Ayurveda",
     description: "Join our professional Ayurveda courses and workshops. Learn traditional healing techniques and lifestyle management.",
-    url: "https://absoluteayurveda.com/course",
+    url: "https://absoluteayur.com/course",
     images: [
       {
         url: "/absoluteayur.png",

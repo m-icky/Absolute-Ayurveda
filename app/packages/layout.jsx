@@ -7,7 +7,7 @@ export const metadata = {
   openGraph: {
     title: "Ayurveda Packages | Absolute Ayurveda",
     description: "Explore our specialized Ayurveda programs including Panchakarma, Rejuvenation, Slimming, and more.",
-    url: "https://absoluteayurveda.com/packages",
+    url: "https://absoluteayur.com/packages",
     images: [
       {
         url: "/absoluteayur.png",

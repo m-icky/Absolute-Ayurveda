@@ -5,6 +5,6 @@ export default function robots() {
       allow: "/",
       disallow: "/private/",
     },
-    sitemap: "https://absoluteayurveda.com/sitemap.xml",
+    sitemap: "https://absoluteayur.com/sitemap.xml",
   };
 }
