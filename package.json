@@ -1,26 +1,18 @@
 {
-  "name": "absolute-ayurveda",
-  "version": "0.1.0",
+  "name": "absolute-ayurveda-monorepo",
+  "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "Frontend",
+    "Backend"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/material": "^9.0.0",
-    "framer-motion": "^11.2.10",
-    "gsap": "^3.15.0",
-    "next": "14.2.3",
-    "react": "^18",
-    "react-dom": "^18",
-    "react-icons": "^5.6.0"
+    "frontend": "npm run dev -w Frontend",
+    "backend": "npm run dev -w Backend",
+    "dev": "npx concurrently \"npm run frontend\" \"npm run backend\"",
+    "install-all": "npm install"
   },
   "devDependencies": {
-    "autoprefixer": "^10.0.1",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1"
+    "concurrently": "^8.2.2"
   }
 }
