@@ -3,14 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "Frontend",
-    "Backend"
+    "Frontend"
   ],
   "scripts": {
     "frontend": "npm run dev -w Frontend",
-    "backend": "npm run dev -w Backend",
+    "backend": "cd Backend && py manage.py runserver",
     "dev": "npx concurrently \"npm run frontend\" \"npm run backend\"",
-    "install-all": "npm install"
+    "install-all": "npm install && cd Frontend && npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
