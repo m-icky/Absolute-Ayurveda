@@ -1,21 +1,17 @@
 from django.db import models
 
 class Specialist(models.Model):
-
     name = models.CharField(max_length=150)
-    slug = models.SlugField(unique=True, blank=True)
-    designation = models.CharField(max_length=150)
-    specialty = models.CharField(max_length=150)
-    description = models.TextField()
-    image = models.ImageField(upload_to='specialists/')
+    designation = models.CharField(max_length=150, blank=True, null=True)
+    specialty = models.CharField(max_length=150, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='specialists/', blank=True, null=True)
     experience = models.PositiveIntegerField(null=True, blank=True)
-    status = models.CharField(max_length=10,default='active')
-    email = models.EmailField(null=True, blank=True)
-    phone = models.CharField(max_length=15, null=True, blank=True)
+    status = models.CharField(max_length=10, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} ({self.status})"
+        return self.name
 
 class Gallery(models.Model):
     title = models.CharField(max_length=200)
