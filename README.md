@@ -38,34 +38,30 @@ http://localhost:3000
 
 ## 🏗 Project Structure
 
-```
+```text
 absolute-ayurveda/
-├── app/
-│   ├── layout.jsx        # Root layout with global SEO metadata
-│   ├── page.jsx          # Home page
-│   ├── sitemap.js        # Dynamic sitemap generator
-│   ├── robots.js         # Robots.txt configuration
-│   ├── packages/         
-│   │   ├── layout.jsx    # Metadata for package listing
-│   │   └── [slug]/       
-│   │       └── layout.jsx # Dynamic metadata for each package
-│   └── course/           
-│       └── layout.jsx    # Metadata for course page
-├── components/
-│   ├── Navbar.jsx        # Sticky transparent → solid navbar
-│   ├── Hero.jsx          # Full-screen hero section
-│   ├── StatsBar.jsx      # Olive stats bar
-│   ├── Intro.jsx         # Philosophy pillars
-│   ├── About.jsx         # Mission grid
-│   ├── Doctors.jsx       # Doctor cards
-│   ├── Facilities.jsx    # Facility blocks
-│   ├── Courses.jsx       # Infinite course carousel
-│   ├── Contact.jsx       # Contact form
-│   └── Footer.jsx        # Contact info + Map
-├── styles/
-│   └── globals.css       # Design tokens & global styles
-└── ...
+├── Frontend/             # Next.js Application
+│   ├── app/              # App Router (Pages, Layouts)
+│   ├── components/       # Reusable React Components
+│   ├── public/           # Static Assets
+│   ├── styles/           # Global CSS
+│   ├── next.config.js    # Next.js configuration
+│   └── package.json      # Frontend dependencies
+│
+├── Backend/              # Django Application
+│   ├── backend_project/  # Core Django settings
+│   ├── manage.py         # Django management script
+│   └── .env              # Environment variables
 ```
+
+## 🏛 Architecture
+
+The project is built using a decoupled client-server architecture:
+
+- **Frontend (Next.js)**: Handles the presentation layer, routing, and server-side rendering (SSR) for optimal SEO and performance. Framer Motion is used for rich animations, and Tailwind CSS for styling.
+- **Backend (Django)**: Serves as the API layer and data management system. It provides RESTful endpoints using the Django REST Framework to handle resources such as Specialists, Courses, Packages, and Consultations.
+- **Database (MySQL)**: The primary data store connected to the Django backend.
+- **Communication**: The Next.js frontend fetches data from and posts data to the Django API endpoints asynchronously.
 
 ---
 
