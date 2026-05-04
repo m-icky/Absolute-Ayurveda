@@ -3,11 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import *
-from .serializers import GallerySerializer, SpecialistSerializer
+from .serializers import *
 from rest_framework.decorators import api_view
 
 
-# 1. The List/Create View (You probably have this one)
+
 class GalleryListCreateAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
@@ -23,7 +23,6 @@ class GalleryListCreateAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# 2. The Detail/Delete View (THIS IS WHAT IS MISSING!)
 class GalleryDetailAPIView(APIView):
     def delete(self, request, pk, *args, **kwargs):
         try:
@@ -81,3 +80,66 @@ def specialist_detail(request, pk):
     if request.method == 'DELETE':
         specialist.delete()
         return Response(status=204)
+
+
+
+class PackageListCreateView(APIView):
+    def get(self, request):
+        packages = Packages.objects.all()
+        serializer = PackageSerializer(packages, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PackageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PackageListCreateView(APIView):
+    def get(self, request):
+        packages = Packages.objects.all()
+        serializer = PackageSerializer(packages, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PackageSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PackageDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return Packages.objects.get(pk=pk)
+        except Packages.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        package = self.get_object(pk)
+        if not package:
+            return Response({"error": "Package not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = PackageSerializer(package, context={'request': request})
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        package = self.get_object(pk)
+        if not package:
+            return Response({"error": "Package not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = PackageSerializer(package, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        package = self.get_object(pk)
+        if not package:
+            return Response({"error": "Package not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        package.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

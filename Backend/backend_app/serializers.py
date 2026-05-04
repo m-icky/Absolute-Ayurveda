@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Gallery, Specialist
+from .models import *
 
 class GallerySerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,4 +11,10 @@ class SpecialistSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Specialist
+        fields = '__all__'
+
+
+class PackageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Packages
         fields = '__all__'
