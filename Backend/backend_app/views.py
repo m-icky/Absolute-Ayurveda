@@ -94,6 +94,36 @@ class CourseListCreateAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         serializer = CourseSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CourseDetailAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get_object(self, pk):
+        try:
+            return courses.objects.get(pk=pk)
+        except courses.DoesNotExist:
+            from django.http import Http404
+            raise Http404
+
+    def put(self, request, pk, *args, **kwargs):
+        course = self.get_object(pk)
+        serializer = CourseSerializer(course, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, *args, **kwargs):
+        course = self.get_object(pk)
+        course.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class PackageListCreateView(APIView):
     def get(self, request):
@@ -107,19 +137,6 @@ class PackageListCreateView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class CourseDetailAPIView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
-
-    def get_object(self, pk):
-        try:
-            return courses.objects.get(pk=pk)
-        except courses.DoesNotExist:
-            raise Http404
-
-    def put(self, request, pk, *args, **kwargs):
-        course = self.get_object(pk)
-        serializer = CourseSerializer(course, data=request.data, partial=True, context={'request': request})
 
 class PackageListCreateView(APIView):
     def get(self, request):
