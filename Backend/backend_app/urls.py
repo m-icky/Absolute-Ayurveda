@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import specialist_list, specialist_detail
+from .views import GalleryListCreateAPIView, GalleryDetailAPIView
 
 urlpatterns = [
-    path('specialists/', specialist_list),
-    path('specialists/<int:pk>/', specialist_detail),
+    path('gallery/', GalleryListCreateAPIView.as_view(), name='gallery-list-create'),
+    path('gallery/<int:pk>/', GalleryDetailAPIView.as_view(), name='gallery-detail'),
 ]

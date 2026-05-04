@@ -1,18 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiUploadCloud, FiTrash2, FiX, FiImage } from "react-icons/fi";
 import { Popover } from "@mui/material";
 
-export default function GalleryManagement() {
-  const [images, setImages] = useState([
-    { id: 1, title: "Clinic Front", url: "/absoluteayur.png", category: "Facility" },
-    { id: 2, title: "Healing Team", url: "/absoluteayur.png", category: "Team" },
-    { id: 3, title: "Therapy Room", url: "/absoluteayur.png", category: "Facility" },
-    { id: 4, title: "Yoga Session", url: "/absoluteayur.png", category: "Activities" },
-  ]);
+// Replace with your actual Django backend URL if different
+const API_BASE_URL = "http://localhost:8000/api/gallery/"; 
 
+export default function GalleryManagement() {
+  const [images, setImages] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ title: "", category: "Facility" });
   const [selectedFile, setSelectedFile] = useState(null);
@@ -20,6 +17,23 @@ export default function GalleryManagement() {
 
   const [deleteAnchorEl, setDeleteAnchorEl] = useState(null);
   const [imgToDelete, setImgToDelete] = useState(null);
+
+  // 1. Fetch images on component mount
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
+  const fetchImages = async () => {
+    try {
+      const response = await fetch(API_BASE_URL);
+      if (response.ok) {
+        const data = await response.json();
+        setImages(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch images:", error);
+    }
+  };
 
   const handleDeleteClick = (event, id) => {
     setDeleteAnchorEl(event.currentTarget);
@@ -54,20 +68,56 @@ export default function GalleryManagement() {
     }
   };
 
-  const handleSubmit = (e) => {
+  // 2. Handle POST Request with FormData
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newId = images.length > 0 ? Math.max(...images.map((img) => img.id)) + 1 : 1;
-    // Fallback to absoluteayur.png if no file is selected
-    const finalUrl = previewUrl ? previewUrl : "/absoluteayur.png";
-    setImages([...images, { id: newId, ...formData, url: finalUrl }]);
-    setIsModalOpen(false);
-    setFormData({ title: "", category: "Facility" });
-    setSelectedFile(null);
-    setPreviewUrl("");
+    
+    if (!selectedFile) {
+      alert("Please select an image to upload.");
+      return;
+    }
+
+    const uploadData = new FormData();
+    uploadData.append("title", formData.title);
+    uploadData.append("category", formData.category);
+    uploadData.append("image", selectedFile);
+
+    try {
+      const response = await fetch(API_BASE_URL, {
+        method: "POST",
+        body: uploadData, // Fetch automatically sets the correct multipart/form-data boundary
+      });
+
+      if (response.ok) {
+        const newImage = await response.json();
+        setImages([newImage, ...images]); // Add new image to the UI
+        setIsModalOpen(false);
+        setFormData({ title: "", category: "Facility" });
+        setSelectedFile(null);
+        setPreviewUrl("");
+      } else {
+        console.error("Failed to upload image");
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
   };
 
-  const handleDelete = (id) => {
-    setImages(images.filter((img) => img.id !== id));
+  // 3. Handle DELETE Request
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${id}/`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setImages(images.filter((img) => img.id !== id));
+      } else {
+        console.error("Failed to delete image");
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+    }
   };
 
   return (
@@ -93,9 +143,7 @@ export default function GalleryManagement() {
             whileHover={{ y: -5 }}
             className="bg-white rounded-xl overflow-hidden shadow-sm border border-border group relative"
           >
-            {/* Using a placeholder styled div or the actual logo for now */}
             <div className="h-48 bg-cream/50 flex items-center justify-center p-4 relative overflow-hidden">
-               {/* Overlay for delete action */}
                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
                  <button 
                    aria-describedby={deletePopoverId} 
@@ -105,8 +153,8 @@ export default function GalleryManagement() {
                    <FiTrash2 size={20} />
                  </button>
                </div>
-               {/* Actual Image */}
-               <img src={img.url} alt={img.title} className="max-h-full object-contain" />
+               {/* Updated from img.url to img.image to match Django Serializer */}
+               <img src={img.image} alt={img.title} className="max-h-full object-contain" />
             </div>
             
             <div className="p-4 border-t border-border">

@@ -1,9 +1,7 @@
 from rest_framework import serializers
-from .models import Specialist
+from .models import Gallery
 
-class SpecialistSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required=False)
-
+class GallerySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Specialist
-        fields = '__all__'
+        model = Gallery
+        fields = ['id', 'title', 'image', 'description', 'category', 'created_at']
