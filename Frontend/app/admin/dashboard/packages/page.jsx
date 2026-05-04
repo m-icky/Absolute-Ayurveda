@@ -1,23 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiPlus, FiEdit, FiTrash2, FiX } from "react-icons/fi";
+import { FiPlus, FiEdit, FiTrash2, FiX, FiImage } from "react-icons/fi";
 import { Popover } from "@mui/material";
 
-export default function PackagesManagement() {
-  const [packages, setPackages] = useState([
-    { id: 1, name: "Panchakarma Detox", duration: "14 Days", price: "$1,200", status: "Active" },
-    { id: 2, title: "Rejuvenation Therapy", duration: "7 Days", price: "$650", status: "Active" },
-    { id: 3, title: "Stress Relief Package", duration: "3 Days", price: "$300", status: "Draft" },
-  ]);
+// Replace with your actual Django backend URL if different
+const API_BASE_URL = "http://127.0.0.1:8000/api/packages/";
+const SERVER_URL = "http://127.0.0.1:8000"; 
 
+export default function PackagesManagement() {
+  const [packages, setPackages] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [formData, setFormData] = useState({ name: "", duration: "", price: "", status: "Active" });
+  
+  const [formData, setFormData] = useState({ 
+    heading: "", 
+    title: "", 
+    description: "", 
+    price: "", 
+    status: "active",
+    image: null 
+  });
 
   const [deleteAnchorEl, setDeleteAnchorEl] = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
+
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  const fetchPackages = async () => {
+    try {
+      const response = await fetch(API_BASE_URL);
+      const data = await response.json();
+      setPackages(data);
+    } catch (error) {
+      console.error("Failed to fetch packages:", error);
+    }
+  };
 
   const handleDeleteClick = (event, id) => {
     setDeleteAnchorEl(event.currentTarget);
@@ -29,9 +50,14 @@ export default function PackagesManagement() {
     setItemToDelete(null);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete !== null) {
-      handleDelete(itemToDelete);
+      try {
+        await fetch(`${API_BASE_URL}${itemToDelete}/`, { method: "DELETE" });
+        setPackages(packages.filter((p) => p.id !== itemToDelete));
+      } catch (error) {
+        console.error("Failed to delete package:", error);
+      }
       handleDeleteClose();
     }
   };
@@ -44,33 +70,72 @@ export default function PackagesManagement() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    setFormData((prev) => ({ ...prev, image: e.target.files[0] }));
+  };
+
   const handleAddClick = () => {
     setEditId(null);
-    setFormData({ name: "", duration: "", price: "", status: "Active" });
+    setFormData({ heading: "", title: "", description: "", price: "", status: "active", image: null });
     setIsModalOpen(true);
   };
 
   const handleEditClick = (pkg) => {
     setEditId(pkg.id);
-    setFormData({ ...pkg, name: pkg.name || pkg.title });
+    setFormData({ 
+      heading: pkg.heading || "", 
+      title: pkg.title || "", 
+      description: pkg.description || "", 
+      price: pkg.price || "", 
+      status: pkg.status || "active",
+      image: null // Reset to null so we don't accidentally send a string URL back to the File field
+    });
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    setPackages(packages.filter((p) => p.id !== id));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const url = editId ? `${API_BASE_URL}${editId}/` : API_BASE_URL;
+    const method = editId ? "PUT" : "POST";
+
+    // Use FormData for file uploads
+    const submitData = new FormData();
+    submitData.append("heading", formData.heading);
+    submitData.append("title", formData.title);
+    submitData.append("description", formData.description);
+    if (formData.price) submitData.append("price", formData.price);
+    submitData.append("status", formData.status);
+    
+    // Only append image if a new file was actually selected
+    if (formData.image instanceof File) {
+      submitData.append("image", formData.image);
+    }
+
+    try {
+      const response = await fetch(url, {
+        method,
+        // Do not set Content-Type header manually; fetch handles it for FormData automatically
+        body: submitData,
+      });
+
+      if (response.ok) {
+        fetchPackages();
+        setIsModalOpen(false);
+        setFormData({ heading: "", title: "", description: "", price: "", status: "active", image: null });
+        setEditId(null);
+      } else {
+        console.error("Failed to save package");
+      }
+    } catch (error) {
+      console.error("Error saving package:", error);
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (editId) {
-      setPackages(packages.map((p) => p.id === editId ? { ...formData, id: editId } : p));
-    } else {
-      const newId = packages.length > 0 ? Math.max(...packages.map((p) => p.id)) + 1 : 1;
-      setPackages([...packages, { id: newId, ...formData }]);
-    }
-    setIsModalOpen(false);
-    setFormData({ name: "", duration: "", price: "", status: "Active" });
-    setEditId(null);
+  // Helper function to safely format the image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    return imagePath.startsWith('http') ? imagePath : `${SERVER_URL}${imagePath}`;
   };
 
   return (
@@ -94,8 +159,10 @@ export default function PackagesManagement() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-cream/50 text-text-muted text-sm font-lato uppercase tracking-wider border-b border-border">
-                <th className="px-6 py-4 font-semibold">Package Name</th>
-                <th className="px-6 py-4 font-semibold">Duration</th>
+                <th className="px-6 py-4 font-semibold">Image</th>
+                <th className="px-6 py-4 font-semibold">Title</th>
+                <th className="px-6 py-4 font-semibold">Heading</th>
+                <th className="px-6 py-4 font-semibold">Description</th>
                 <th className="px-6 py-4 font-semibold">Price</th>
                 <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
@@ -104,12 +171,29 @@ export default function PackagesManagement() {
             <tbody className="divide-y divide-border">
               {packages.map((pkg) => (
                 <tr key={pkg.id} className="hover:bg-cream/20 transition-colors">
-                  <td className="px-6 py-4 font-medium text-text">{pkg.name || pkg.title}</td>
-                  <td className="px-6 py-4 text-text-muted">{pkg.duration}</td>
+                  <td className="px-6 py-4">
+                    {pkg.image ? (
+                      <img 
+                        src={getImageUrl(pkg.image)} 
+                        alt={pkg.title} 
+                        className="w-12 h-12 object-cover rounded-md border border-border" 
+                        onError={(e) => { e.target.src = "https://via.placeholder.com/48?text=Error" }} // Fallback if image fails to load
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center text-gray-400">
+                        <FiImage />
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 font-medium text-text">{pkg.title}</td>
+                  <td className="px-6 py-4 text-text-muted">{pkg.heading}</td>
+                  <td className="px-6 py-4 text-text-muted max-w-[200px] truncate" title={pkg.description}>
+                    {pkg.description}
+                  </td>
                   <td className="px-6 py-4 text-text-muted">{pkg.price}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      pkg.status === "Active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
+                      pkg.status.toLowerCase() === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
                     }`}>
                       {pkg.status}
                     </span>
@@ -147,37 +231,61 @@ export default function PackagesManagement() {
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
-              className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+              className="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex justify-between items-center p-6 border-b border-border">
+              <div className="flex justify-between items-center p-6 border-b border-border sticky top-0 bg-white z-10">
                 <h2 className="text-xl font-playfair text-text">{editId ? "Edit Package" : "Add New Package"}</h2>
                 <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text transition-colors">
                   <FiX size={24} />
                 </button>
               </div>
               <form onSubmit={handleSubmit} className="p-6 space-y-4 font-lato">
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-1">Package Name</label>
-                  <input required type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. Detox Package" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-text mb-1">Package Title</label>
+                    <input required type="text" name="title" value={formData.title} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. Detox Package" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-text mb-1">Heading</label>
+                    <input required type="text" name="heading" value={formData.heading} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. Refresh Your Mind" />
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-text mb-1">Duration</label>
-                  <input required type="text" name="duration" value={formData.duration} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. 7 Days" />
+                  <label className="block text-sm font-semibold text-text mb-1">Description</label>
+                  <textarea required name="description" value={formData.description} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="Enter full details..." rows="4"></textarea>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-text mb-1">Price</label>
-                  <input required type="text" name="price" value={formData.price} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. $500" />
+                  <label className="block text-sm font-semibold text-text mb-1">Package Image</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    name="image" 
+                    onChange={handleFileChange} 
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cream file:text-olive hover:file:bg-cream/80" 
+                  />
+                  {editId && <p className="text-xs text-text-muted mt-1">Leave empty to keep current image.</p>}
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-1">Status</label>
-                  <select name="status" value={formData.status} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors">
-                    <option value="Active">Active</option>
-                    <option value="Draft">Draft</option>
-                  </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-text mb-1">Price</label>
+                    <input type="text" name="price" value={formData.price} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. $500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-text mb-1">Status</label>
+                    <select name="status" value={formData.status} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors">
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="draft">Draft</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="mt-6 flex justify-end gap-3">
+
+                <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-border">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-text hover:bg-cream/50 rounded-lg transition-colors">Cancel</button>
-                  <button type="submit" className="bg-olive hover:bg-olive-dark text-white px-4 py-2 rounded-lg transition-colors">Save</button>
+                  <button type="submit" className="bg-olive hover:bg-olive-dark text-white px-4 py-2 rounded-lg transition-colors">Save Package</button>
                 </div>
               </form>
             </motion.div>
@@ -190,14 +298,8 @@ export default function PackagesManagement() {
         open={deleteOpen}
         anchorEl={deleteAnchorEl}
         onClose={handleDeleteClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <div className="p-4 font-lato">
           <p className="text-text mb-4">Are you sure you want to delete this package?</p>

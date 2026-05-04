@@ -50,6 +50,7 @@ class courses(models.Model):
         return f"{self.title} ({self.status})"
 
 class Packages(models.Model):
+    heading = models.CharField(max_length=200)
     title = models.CharField(max_length=200)
     description = models.TextField()
     image = models.ImageField(upload_to='packages/')
