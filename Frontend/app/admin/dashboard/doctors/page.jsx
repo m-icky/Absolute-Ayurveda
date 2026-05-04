@@ -1,24 +1,146 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiPlus, FiEdit, FiTrash2, FiX } from "react-icons/fi";
 import { Popover } from "@mui/material";
 
-export default function DoctorsManagement() {
-  const [doctors, setDoctors] = useState([
-    { id: 1, name: "Dr. Ananya Sharma", specialization: "Panchakarma Specialist", experience: "15 Years", status: "Active" },
-    { id: 2, name: "Dr. Vikram Singh", specialization: "Ayurvedic Physician", experience: "10 Years", status: "Active" },
-    { id: 3, name: "Dr. Priya Patel", specialization: "Yoga Therapist", experience: "8 Years", status: "On Leave" },
-  ]);
+const API_URL = "http://127.0.0.1:8000/api/specialists/";
 
+export default function DoctorsManagement() {
+  const [doctors, setDoctors] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [formData, setFormData] = useState({ name: "", specialization: "", experience: "", status: "Active" });
+
+  const [formData, setFormData] = useState({
+    name: "",
+    designation: "",
+    specialty: "",
+    description: "",
+    experience: "",
+    status: "active",
+    image: null,
+  });
+
+  const [errors, setErrors] = useState({});
+  const [preview, setPreview] = useState(null);
 
   const [deleteAnchorEl, setDeleteAnchorEl] = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
 
+  // FETCH
+  const fetchDoctors = async () => {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    setDoctors(data);
+  };
+
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  // INPUT
+  const handleInputChange = (e) => {
+    const { name, value, files } = e.target;
+
+    if (name === "image") {
+      setFormData((prev) => ({ ...prev, image: files[0] }));
+      setPreview(URL.createObjectURL(files[0]));
+    } else if (name === "experience") {
+      setFormData((prev) => ({
+        ...prev,
+        experience: value === "" ? "" : Number(value),
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
+    // remove error when typing
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  // VALIDATION
+  const validate = () => {
+    let newErrors = {};
+
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.designation.trim()) newErrors.designation = "Designation is required";
+    if (!formData.specialty.trim()) newErrors.specialty = "Specialty is required";
+    if (!formData.description.trim()) newErrors.description = "Description is required";
+
+    if (formData.experience === "" || formData.experience <= 0) {
+      newErrors.experience = "Valid experience is required";
+    }
+
+    if (!editId && !formData.image) {
+      newErrors.image = "Image is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // ADD
+  const handleAddClick = () => {
+    setEditId(null);
+    setFormData({
+      name: "",
+      designation: "",
+      specialty: "",
+      description: "",
+      experience: "",
+      status: "active",
+      image: null,
+    });
+    setPreview(null);
+    setErrors({});
+    setIsModalOpen(true);
+  };
+
+  // EDIT
+  const handleEditClick = (doc) => {
+    setEditId(doc.id);
+    setFormData({
+      name: doc.name || "",
+      designation: doc.designation || "",
+      specialty: doc.specialty || "",
+      description: doc.description || "",
+      experience: doc.experience ?? "",
+      status: doc.status || "active",
+      image: null,
+    });
+    setPreview(doc.image || null);
+    setErrors({});
+    setIsModalOpen(true);
+  };
+
+  // SUBMIT
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validate()) return; // stop if invalid
+
+    const form = new FormData();
+
+    Object.keys(formData).forEach((key) => {
+      if (formData[key] !== null && formData[key] !== "") {
+        form.append(key, formData[key]);
+      }
+    });
+
+    const method = editId ? "PUT" : "POST";
+    const url = editId ? `${API_URL}${editId}/` : API_URL;
+
+    await fetch(url, {
+      method,
+      body: form,
+    });
+
+    setIsModalOpen(false);
+    fetchDoctors();
+  };
+
+  // DELETE
   const handleDeleteClick = (event, id) => {
     setDeleteAnchorEl(event.currentTarget);
     setItemToDelete(id);
@@ -29,97 +151,84 @@ export default function DoctorsManagement() {
     setItemToDelete(null);
   };
 
-  const confirmDelete = () => {
-    if (itemToDelete !== null) {
-      handleDelete(itemToDelete);
-      handleDeleteClose();
-    }
+  const confirmDelete = async () => {
+    await fetch(`${API_URL}${itemToDelete}/`, { method: "DELETE" });
+    fetchDoctors();
+    handleDeleteClose();
   };
 
   const deleteOpen = Boolean(deleteAnchorEl);
-  const deletePopoverId = deleteOpen ? 'delete-popover' : undefined;
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddClick = () => {
-    setEditId(null);
-    setFormData({ name: "", specialization: "", experience: "", status: "Active" });
-    setIsModalOpen(true);
-  };
-
-  const handleEditClick = (doctor) => {
-    setEditId(doctor.id);
-    setFormData(doctor);
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id) => {
-    setDoctors(doctors.filter((d) => d.id !== id));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (editId) {
-      setDoctors(doctors.map((d) => d.id === editId ? { ...formData, id: editId } : d));
-    } else {
-      const newId = doctors.length > 0 ? Math.max(...doctors.map((d) => d.id)) + 1 : 1;
-      setDoctors([...doctors, { id: newId, ...formData }]);
-    }
-    setIsModalOpen(false);
-    setFormData({ name: "", specialization: "", experience: "", status: "Active" });
-    setEditId(null);
-  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-playfair text-text mb-2">Doctors Management</h1>
-          <p className="text-text-muted font-lato">Manage the list of our specialists and doctors.</p>
+          <h1 className="text-3xl font-playfair text-text mb-2">
+            Doctors Management
+          </h1>
+          <p className="text-text-muted font-lato">
+            Manage the list of our specialists and doctors.
+          </p>
         </div>
-        <button onClick={handleAddClick} className="bg-olive hover:bg-olive-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-lato shadow-sm">
+
+        <button
+          onClick={handleAddClick}
+          className="bg-olive hover:bg-olive-dark text-white px-4 py-2 rounded-lg flex items-center gap-2"
+        >
           <FiPlus /> Add New Doctor
         </button>
       </div>
 
+      {/* TABLE */}
       <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-cream/50 text-text-muted text-sm font-lato uppercase tracking-wider border-b border-border">
-                <th className="px-6 py-4 font-semibold">Name</th>
-                <th className="px-6 py-4 font-semibold">Specialization</th>
-                <th className="px-6 py-4 font-semibold">Experience</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+              <tr className="bg-cream/50 text-text-muted text-sm border-b border-border">
+                <th className="px-6 py-4">Image</th>
+                <th className="px-6 py-4">Name</th>
+                <th className="px-6 py-4">Designation</th>
+                <th className="px-6 py-4">Specialty</th>
+                <th className="px-6 py-4">Experience</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {doctors.map((doctor) => (
-                <tr key={doctor.id} className="hover:bg-cream/20 transition-colors">
-                  <td className="px-6 py-4 font-medium text-text">{doctor.name}</td>
-                  <td className="px-6 py-4 text-text-muted">{doctor.specialization}</td>
-                  <td className="px-6 py-4 text-text-muted">{doctor.experience}</td>
+
+            <tbody>
+              {doctors.map((doc) => (
+                <tr key={doc.id} className="hover:bg-cream/20">
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      doctor.status === "Active" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {doctor.status}
+                    {doc.image && (
+                      <img
+                        src={doc.image.startsWith("http") ? doc.image : `http://127.0.0.1:8000${doc.image}`}
+                        className="w-12 h-12 rounded object-cover"
+                      />
+                    )}
+                  </td>
+
+                  <td className="px-6 py-4">{doc.name}</td>
+                  <td className="px-6 py-4">{doc.designation}</td>
+                  <td className="px-6 py-4">{doc.specialty}</td>
+                  <td className="px-6 py-4">
+                    {doc.experience ? `${doc.experience} Years` : "-"}
+                  </td>
+
+                  <td className="px-6 py-4">
+                    <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                      {doc.status}
                     </span>
                   </td>
+
                   <td className="px-6 py-4 flex justify-end gap-3">
-                    <button onClick={() => handleEditClick(doctor)} className="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                      <FiEdit size={18} />
+                    <button onClick={() => handleEditClick(doc)}>
+                      <FiEdit />
                     </button>
-                    <button aria-describedby={deletePopoverId} onClick={(e) => handleDeleteClick(e, doctor.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors">
-                      <FiTrash2 size={18} />
+
+                    <button onClick={(e) => handleDeleteClick(e, doc.id)}>
+                      <FiTrash2 />
                     </button>
                   </td>
                 </tr>
@@ -127,83 +236,82 @@ export default function DoctorsManagement() {
             </tbody>
           </table>
         </div>
-        
+
         {doctors.length === 0 && (
-          <div className="p-8 text-center text-text-muted font-lato">
-            No doctors found. Add one to get started.
+          <div className="p-8 text-center text-text-muted">
+            No doctors found
           </div>
         )}
       </div>
 
+      {/* MODAL */}
       <AnimatePresence>
         {isModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-            >
-              <div className="flex justify-between items-center p-6 border-b border-border">
-                <h2 className="text-xl font-playfair text-text">{editId ? "Edit Doctor" : "Add New Doctor"}</h2>
-                <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text transition-colors">
-                  <FiX size={24} />
+          <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <motion.div className="bg-white rounded-xl w-full max-w-md">
+              <div className="flex justify-between p-6 border-b">
+                <h2>{editId ? "Edit Doctor" : "Add Doctor"}</h2>
+                <button onClick={() => setIsModalOpen(false)}>
+                  <FiX />
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="p-6 space-y-4 font-lato">
+
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+
                 <div>
-                  <label className="block text-sm font-semibold text-text mb-1">Name</label>
-                  <input required type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. Dr. John Doe" />
+                  <input name="name" value={formData.name} onChange={handleInputChange} placeholder="Name" className="w-full border p-2" />
+                  {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-text mb-1">Specialization</label>
-                  <input required type="text" name="specialization" value={formData.specialization} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. Ayurvedic Physician" />
+                  <input name="designation" value={formData.designation} onChange={handleInputChange} placeholder="Designation" className="w-full border p-2" />
+                  {errors.designation && <p className="text-red-500 text-xs">{errors.designation}</p>}
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-text mb-1">Experience</label>
-                  <input required type="text" name="experience" value={formData.experience} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. 5 Years" />
+                  <input name="specialty" value={formData.specialty} onChange={handleInputChange} placeholder="Specialty" className="w-full border p-2" />
+                  {errors.specialty && <p className="text-red-500 text-xs">{errors.specialty}</p>}
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-text mb-1">Status</label>
-                  <select name="status" value={formData.status} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors">
-                    <option value="Active">Active</option>
-                    <option value="On Leave">On Leave</option>
-                  </select>
+                  <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Description" className="w-full border p-2" />
+                  {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
                 </div>
-                <div className="mt-6 flex justify-end gap-3">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-text hover:bg-cream/50 rounded-lg transition-colors">Cancel</button>
-                  <button type="submit" className="bg-olive hover:bg-olive-dark text-white px-4 py-2 rounded-lg transition-colors">Save</button>
+
+                <div>
+                  <input type="number" name="experience" value={formData.experience ?? ""} onChange={handleInputChange} placeholder="Experience (years)" className="w-full border p-2" />
+                  {errors.experience && <p className="text-red-500 text-xs">{errors.experience}</p>}
                 </div>
+
+                <div>
+                  <input type="file" name="image" onChange={handleInputChange} />
+                  {errors.image && <p className="text-red-500 text-xs">{errors.image}</p>}
+                  {preview && <img src={preview} className="w-20 h-20 mt-2 object-cover" />}
+                </div>
+
+                <select name="status" value={formData.status} onChange={handleInputChange} className="w-full border p-2">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+
+                <div className="flex justify-end gap-2">
+                  <button type="button" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                  <button type="submit" className="bg-olive text-white px-4 py-2 rounded">Save</button>
+                </div>
+
               </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <Popover
-        id={deletePopoverId}
-        open={deleteOpen}
-        anchorEl={deleteAnchorEl}
-        onClose={handleDeleteClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-      >
-        <div className="p-4 font-lato">
-          <p className="text-text mb-4">Are you sure you want to delete this doctor?</p>
-          <div className="flex justify-end gap-2">
-            <button onClick={handleDeleteClose} className="px-3 py-1.5 text-sm text-text hover:bg-cream/50 rounded-lg transition-colors">Cancel</button>
-            <button onClick={confirmDelete} className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 text-sm rounded-lg transition-colors">Delete</button>
+      {/* DELETE */}
+      <Popover open={deleteOpen} anchorEl={deleteAnchorEl} onClose={handleDeleteClose}>
+        <div className="p-4">
+          <p>Delete this doctor?</p>
+          <div className="flex gap-2 mt-2">
+            <button onClick={handleDeleteClose}>Cancel</button>
+            <button onClick={confirmDelete} className="bg-red-500 text-white px-3 py-1">Delete</button>
           </div>
         </div>
       </Popover>
