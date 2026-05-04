@@ -3,11 +3,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import *
-from .serializers import GallerySerializer, SpecialistSerializer
+from .serializers import *
 from rest_framework.decorators import api_view
+from django.http import Http404
 
 
-# 1. The List/Create View (You probably have this one)
+
 class GalleryListCreateAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
@@ -23,7 +24,6 @@ class GalleryListCreateAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# 2. The Detail/Delete View (THIS IS WHAT IS MISSING!)
 class GalleryDetailAPIView(APIView):
     def delete(self, request, pk, *args, **kwargs):
         try:
@@ -81,3 +81,41 @@ def specialist_detail(request, pk):
     if request.method == 'DELETE':
         specialist.delete()
         return Response(status=204)
+
+
+class CourseListCreateAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get(self, request, *args, **kwargs):
+        all_courses = courses.objects.all().order_by('-created_at')
+        serializer = CourseSerializer(all_courses, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = CourseSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CourseDetailAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get_object(self, pk):
+        try:
+            return courses.objects.get(pk=pk)
+        except courses.DoesNotExist:
+            raise Http404
+
+    def put(self, request, pk, *args, **kwargs):
+        course = self.get_object(pk)
+        serializer = CourseSerializer(course, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, *args, **kwargs):
+        course = self.get_object(pk)
+        course.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
