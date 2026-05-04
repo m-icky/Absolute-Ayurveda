@@ -9,6 +9,7 @@ from django.http import Http404
 
 
 
+
 class GalleryListCreateAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
@@ -93,6 +94,15 @@ class CourseListCreateAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         serializer = CourseSerializer(data=request.data, context={'request': request})
+
+class PackageListCreateView(APIView):
+    def get(self, request):
+        packages = Packages.objects.all()
+        serializer = PackageSerializer(packages, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PackageSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -110,6 +120,41 @@ class CourseDetailAPIView(APIView):
     def put(self, request, pk, *args, **kwargs):
         course = self.get_object(pk)
         serializer = CourseSerializer(course, data=request.data, partial=True, context={'request': request})
+
+class PackageListCreateView(APIView):
+    def get(self, request):
+        packages = Packages.objects.all()
+        serializer = PackageSerializer(packages, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PackageSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PackageDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return Packages.objects.get(pk=pk)
+        except Packages.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        package = self.get_object(pk)
+        if not package:
+            return Response({"error": "Package not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = PackageSerializer(package, context={'request': request})
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        package = self.get_object(pk)
+        if not package:
+            return Response({"error": "Package not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = PackageSerializer(package, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -118,4 +163,10 @@ class CourseDetailAPIView(APIView):
     def delete(self, request, pk, *args, **kwargs):
         course = self.get_object(pk)
         course.delete()
+    def delete(self, request, pk):
+        package = self.get_object(pk)
+        if not package:
+            return Response({"error": "Package not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        package.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
