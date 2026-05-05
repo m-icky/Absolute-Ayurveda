@@ -7,10 +7,20 @@ import { useState, useEffect } from "react";
 // Configuration for your local Django backend
 const API_BASE_URL = "http://127.0.0.1:8000/api/courses/";
 const SERVER_URL = "http://127.0.0.1:8000";
-const WHATSAPP_NUMBER = "919995267659"; // Your WhatsApp number from the image
+const WHATSAPP_NUMBER = "919995267659";
+
+// Helper function to split array into chunks of 5
+const chunkArray = (arr, size) => {
+  const result = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+};
 
 export default function CoursePage() {
-  const [activeCard, setActiveCard] = useState(0);
+  // Use an object to track the active card for EACH row independently
+  const [activeCards, setActiveCards] = useState({});
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,7 +52,6 @@ export default function CoursePage() {
     return imagePath.startsWith('http') ? imagePath : `${SERVER_URL}${imagePath}`;
   };
 
-  // Function to generate the WhatsApp link with pre-filled message
   const getWhatsAppLink = (course) => {
     const text = `Hello! I would like to enquire about the following course:
     
@@ -54,6 +63,9 @@ Could you please provide more details?`;
 
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
   };
+
+  // Group our courses into rows of 5
+  const courseRows = chunkArray(courses, 5);
 
   return (
     <>
@@ -77,63 +89,81 @@ Could you please provide more details?`;
         ) : courses.length === 0 ? (
           <div className="text-white font-lato">No active courses available at the moment.</div>
         ) : (
-          <div className="flex flex-col md:flex-row w-full max-w-7xl h-[70vh] gap-4 md:gap-5 overflow-hidden">
-            {courses.map((course, index) => (
-              <div
-                key={course.id || index}
-                onClick={() => setActiveCard(index)}
-                className={`relative rounded-[40px] md:rounded-[60px] cursor-pointer overflow-hidden bg-cover bg-center bg-no-repeat transition-all duration-700 ease-in-out bg-gray-800 ${
-                  activeCard === index ? "flex-[5]" : "flex-[1]"
-                }`}
-                style={{
-                  backgroundImage: `url('${getImageUrl(course.image)}')`,
-                }}
+          /* Container for the multiple rows */
+          <div className="flex flex-col gap-10 w-full max-w-7xl items-center">
+            
+            {courseRows.map((row, rowIndex) => (
+              <div 
+                key={rowIndex} 
+                className="flex flex-col md:flex-row w-full h-[70vh] gap-4 md:gap-5 overflow-hidden"
               >
-                {/* Dark overlay for contrast */}
-                <div className={`absolute inset-0 bg-black/40 transition-opacity duration-700 ${activeCard === index ? "opacity-30" : "opacity-60"}`} />
-                
-                {/* Active Content */}
-                <div 
-                  className={`absolute bottom-8 md:bottom-12 left-8 md:left-12 right-8 md:right-12 text-white transition-all duration-500 ${
-                    activeCard === index ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                  }`}
-                >
-                  <h3 className="text-2xl md:text-4xl font-semibold mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
-                    {course.title}
-                  </h3>
-                  <p className="text-sm md:text-base text-gray-200 mb-4 max-w-md italic font-light">
-                    &ldquo;{course.description || course.desc}&rdquo;
-                  </p>
-                  <p className="text-sm md:text-base font-medium text-[#C9B79C]">
-                    {course.duration}
-                  </p>
-                </div>
+                {row.map((course, colIndex) => {
+                  // Determine if this specific card is active in its row (defaults to the first card)
+                  const isActive = activeCards[rowIndex] !== undefined 
+                    ? activeCards[rowIndex] === colIndex 
+                    : colIndex === 0;
 
-                {/* WhatsApp Enquire Button */}
-                <div className={`absolute bottom-8 md:bottom-12 right-8 md:right-12 transition-opacity duration-300 ${
-                  activeCard === index ? "opacity-100 delay-500" : "opacity-0 pointer-events-none"
-                }`}>
-                  <a 
-                    href={getWhatsAppLink(course)} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    <button className="bg-[#D2B48C] text-[#1A1A1A] px-8 py-3 rounded-full text-sm font-medium hover:bg-white transition-all duration-300 shadow-xl">
-                      Enquire on WhatsApp
-                    </button>
-                  </a>
-                </div>
+                  return (
+                    <div
+                      key={course.id || colIndex}
+                      // Update the active state for just THIS row
+                      onClick={() => setActiveCards(prev => ({ ...prev, [rowIndex]: colIndex }))}
+                      className={`relative rounded-[40px] md:rounded-[60px] cursor-pointer overflow-hidden bg-cover bg-center bg-no-repeat transition-all duration-700 ease-in-out bg-gray-800 ${
+                        isActive ? "flex-[5]" : "flex-[1]"
+                      }`}
+                      style={{
+                        backgroundImage: `url('${getImageUrl(course.image)}')`,
+                      }}
+                    >
+                      {/* Dark overlay for contrast */}
+                      <div className={`absolute inset-0 bg-black/40 transition-opacity duration-700 ${isActive ? "opacity-30" : "opacity-80"}`} />
+                      
+                      {/* Active Content */}
+                      <div 
+                        className={`absolute bottom-8 md:bottom-12 left-8 md:left-12 right-8 md:right-12 text-white transition-all duration-500 ${
+                          isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                        }`}
+                      >
+                        <h3 className="text-2xl md:text-4xl font-semibold mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
+                          {course.title}
+                        </h3>
+                        <p className="text-sm md:text-base text-gray-200 mb-4 max-w-md italic font-light line-clamp-3">
+                          &ldquo;{course.description || course.desc}&rdquo;
+                        </p>
+                        <p className="text-sm md:text-base font-medium text-[#C9B79C]">
+                          {course.duration}
+                        </p>
+                      </div>
 
-                {/* Vertical Text */}
-                <div
-                  className={`hidden md:block absolute bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap -rotate-90 origin-center text-white/40 font-bold tracking-[0.2em] uppercase text-xs transition-opacity duration-300 ${
-                    activeCard === index ? "opacity-0" : "opacity-100 delay-300"
-                  }`}
-                >
-                  {course.title ? course.title.replace(" Workshop", "") : ""}
-                </div>
+                      {/* WhatsApp Enquire Button */}
+                      <div className={`absolute bottom-8 md:bottom-12 right-8 md:right-12 transition-opacity duration-300 ${
+                        isActive ? "opacity-100 delay-500" : "opacity-0 pointer-events-none"
+                      }`}>
+                        <a 
+                          href={getWhatsAppLink(course)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <button className="bg-[#D2B48C] text-[#1A1A1A] px-8 py-3 rounded-full text-sm font-medium hover:bg-white transition-all duration-300 shadow-xl">
+                            Enquire on WhatsApp
+                          </button>
+                        </a>
+                      </div>
+
+                      {/* Vertical Text */}
+                      <div
+                        className={`hidden md:block absolute bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap -rotate-90 origin-center text-white/40 font-bold tracking-[0.2em] uppercase text-xs transition-opacity duration-300 ${
+                          isActive ? "opacity-0" : "opacity-100 delay-300"
+                        }`}
+                      >
+                        {course.title ? course.title.replace(" Workshop", "") : ""}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ))}
+            
           </div>
         )}
       </div>

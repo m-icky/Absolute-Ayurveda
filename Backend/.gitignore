@@ -185,3 +185,10 @@ cython_debug/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+
+# Ignore all files in the media folder
+media/*
+
+# But keep the placeholder file so the folder itself stays in the repo
+!media/.gitkeep

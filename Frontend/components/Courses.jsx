@@ -2,42 +2,40 @@
 
 import Reveal from "./Reveal";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
-const courses = [
-  {
-    num: "01",
-    name: "Ayurveda Massage Workshop",
-    desc: "You will be capable of giving general body massage",
-    duration: "10 hours (2h per day)",
-  },
-  {
-    num: "02",
-    name: "Ayurveda Cooking Workshop",
-    desc: "You will be capable of preparing ayurvedic diet followed food",
-    duration: "10 hours (2h per day)",
-  },
-  {
-    num: "03",
-    name: "Basic Ayurveda Workshop",
-    desc: "You will be capable of doing prakriti analysis",
-    duration: "24 hours (2h per day)",
-  },
-  {
-    num: "04",
-    name: "Intermediate Ayurveda Workshop",
-    desc: "You will be capable of giving diet advice and massage",
-    duration: "40 hours (3h per day)",
-  },
-  {
-    num: "05",
-    name: "Advanced Ayurveda Workshop",
-    desc: "You will be capable of preparing medicines and giving massages",
-    duration: "70 hours (3h per day)",
-  },
-];
+// Configuration for your local Django backend
+const API_BASE_URL = "http://127.0.0.1:8000/api/courses/";
 
 export default function Courses() {
   const router = useRouter();
+  const [courses, setCourses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch courses from the backend
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch(API_BASE_URL);
+        const data = await response.json();
+        
+        // Filter: Accepts both 'active' and 'open' statuses
+        const activeCourses = data.filter(course => {
+          if (!course.status) return true; 
+          const status = String(course.status).toLowerCase();
+          return status === 'active' || status === 'open';
+        });
+        
+        setCourses(activeCourses);
+      } catch (error) {
+        console.error("Failed to fetch courses:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   return (
     <section
@@ -74,71 +72,97 @@ export default function Courses() {
               overflow: "hidden",
               position: "relative",
               background: "rgba(255,255,255,0.1)",
+              minHeight: "250px", // Ensures space while loading
+              display: "flex",
+              alignItems: "center"
             }}
           >
-            <style>{`
-              @keyframes marquee-courses {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(-50%); }
-              }
-              .marquee-wrapper:hover .marquee-content {
-                animation-play-state: paused;
-              }
-            `}</style>
-            <div className="marquee-wrapper" style={{ display: "flex" }}>
-              <div
-                className="marquee-content"
-                style={{
-                  display: "flex",
-                  animation: "marquee-courses 30s linear infinite",
-                  width: "max-content",
-                }}
-              >
-                {[...courses, ...courses].map((c, i) => (
-                  <div
-                    key={`${c.num}-${i}`}
-                    style={{
-                      flexShrink: 0,
-                      width: "320px",
-                      background: "#1A1A1A",
-                      padding: "48px 36px",
-                      transition: "background 0.4s",
-                      cursor: "default",
-                      marginRight: "1px",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#222")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "#1A1A1A")}
-                  >
-                    <div
-                      style={{
-                        fontFamily: "'Playfair Display', serif",
-                        fontSize: "48px",
-                        fontWeight: 400,
-                        color: "rgba(201,183,156,0.22)",
-                        marginBottom: "16px",
-                        lineHeight: 1,
-                      }}
-                    >
-                      {c.num}
-                    </div>
-                    <h3
-                      style={{
-                        fontFamily: "'Playfair Display', serif",
-                        fontSize: "22px",
-                        fontWeight: 400,
-                        color: "white",
-                        marginBottom: "12px",
-                      }}
-                    >
-                      {c.name}
-                    </h3>
-                    <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>
-                      {c.desc}
-                    </p>
-                  </div>
-                ))}
+            {isLoading ? (
+              <div style={{ width: "100%", textAlign: "center", color: "rgba(255,255,255,0.5)", fontFamily: "Lato" }}>
+                Loading courses...
               </div>
-            </div>
+            ) : courses.length === 0 ? (
+              <div style={{ width: "100%", textAlign: "center", color: "rgba(255,255,255,0.5)", fontFamily: "Lato" }}>
+                No active courses available at the moment.
+              </div>
+            ) : (
+              <>
+                <style>{`
+                  @keyframes marquee-courses {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                  }
+                  .marquee-wrapper:hover .marquee-content {
+                    animation-play-state: paused;
+                  }
+                `}</style>
+                <div className="marquee-wrapper" style={{ display: "flex", width: "100%" }}>
+                  <div
+                    className="marquee-content"
+                    style={{
+                      display: "flex",
+                      animation: "marquee-courses 30s linear infinite",
+                      width: "max-content",
+                    }}
+                  >
+                    {/* Duplicating the array to create the seamless scrolling effect */}
+                    {[...courses, ...courses].map((c, i) => {
+                      // Calculate actual index to generate numbers like 01, 02 correctly even for the duplicated items
+                      const actualIndex = i % courses.length;
+                      const displayNum = String(actualIndex + 1).padStart(2, "0");
+
+                      return (
+                        <div
+                          key={`${c.id || actualIndex}-${i}`}
+                          style={{
+                            flexShrink: 0,
+                            width: "320px",
+                            background: "#1A1A1A",
+                            padding: "48px 36px",
+                            transition: "background 0.4s",
+                            cursor: "default",
+                            marginRight: "1px",
+                            display: "flex",
+                            flexDirection: "column"
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "#222")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "#1A1A1A")}
+                        >
+                          <div
+                            style={{
+                              fontFamily: "'Playfair Display', serif",
+                              fontSize: "48px",
+                              fontWeight: 400,
+                              color: "rgba(201,183,156,0.22)",
+                              marginBottom: "16px",
+                              lineHeight: 1,
+                            }}
+                          >
+                            {displayNum}
+                          </div>
+                          <h3
+                            style={{
+                              fontFamily: "'Playfair Display', serif",
+                              fontSize: "22px",
+                              fontWeight: 400,
+                              color: "white",
+                              marginBottom: "12px",
+                            }}
+                          >
+                            {/* Falls back to name if title isn't available */}
+                            {c.title || c.name}
+                          </h3>
+                          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>
+                            {/* Supports both description (Django model) and desc (Static format) */}
+                            {c.description || c.desc}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </Reveal>
 
