@@ -5,20 +5,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiUploadCloud, FiTrash2, FiX, FiImage } from "react-icons/fi";
 import { Popover } from "@mui/material";
 
-// Replace with your actual Django backend URL if different
 const API_BASE_URL = "http://localhost:8000/api/gallery/"; 
 
 export default function GalleryManagement() {
   const [images, setImages] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ title: "", category: "Facility" });
+  // 1. Updated formData to use description instead of category
+  const [formData, setFormData] = useState({ title: "", description: "" });
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
 
   const [deleteAnchorEl, setDeleteAnchorEl] = useState(null);
   const [imgToDelete, setImgToDelete] = useState(null);
 
-  // 1. Fetch images on component mount
   useEffect(() => {
     fetchImages();
   }, []);
@@ -68,7 +67,6 @@ export default function GalleryManagement() {
     }
   };
 
-  // 2. Handle POST Request with FormData
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -79,20 +77,22 @@ export default function GalleryManagement() {
 
     const uploadData = new FormData();
     uploadData.append("title", formData.title);
-    uploadData.append("category", formData.category);
+    // 2. Append description instead of category
+    uploadData.append("description", formData.description);
     uploadData.append("image", selectedFile);
 
     try {
       const response = await fetch(API_BASE_URL, {
         method: "POST",
-        body: uploadData, // Fetch automatically sets the correct multipart/form-data boundary
+        body: uploadData, 
       });
 
       if (response.ok) {
         const newImage = await response.json();
-        setImages([newImage, ...images]); // Add new image to the UI
+        setImages([newImage, ...images]); 
         setIsModalOpen(false);
-        setFormData({ title: "", category: "Facility" });
+        // Reset state
+        setFormData({ title: "", description: "" });
         setSelectedFile(null);
         setPreviewUrl("");
       } else {
@@ -103,7 +103,6 @@ export default function GalleryManagement() {
     }
   };
 
-  // 3. Handle DELETE Request
   const handleDelete = async (id) => {
     try {
       const response = await fetch(`${API_BASE_URL}${id}/`, {
@@ -128,8 +127,8 @@ export default function GalleryManagement() {
     >
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-playfair text-text mb-2">Gallery & Team Images</h1>
-          <p className="text-text-muted font-lato">Manage images for the gallery and healing team.</p>
+          <h1 className="text-3xl font-playfair text-text mb-2">Gallery Images</h1>
+          <p className="text-text-muted font-lato">Manage images for the gallery.</p>
         </div>
         <button onClick={() => setIsModalOpen(true)} className="bg-olive hover:bg-olive-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-lato shadow-sm">
           <FiUploadCloud /> Upload New Image
@@ -141,9 +140,9 @@ export default function GalleryManagement() {
           <motion.div
             key={img.id}
             whileHover={{ y: -5 }}
-            className="bg-white rounded-xl overflow-hidden shadow-sm border border-border group relative"
+            className="bg-white rounded-xl overflow-hidden shadow-sm border border-border group relative flex flex-col"
           >
-            <div className="h-48 bg-cream/50 flex items-center justify-center p-4 relative overflow-hidden">
+            <div className="h-48 bg-cream/50 flex items-center justify-center p-4 relative overflow-hidden shrink-0">
                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
                  <button 
                    aria-describedby={deletePopoverId} 
@@ -153,17 +152,27 @@ export default function GalleryManagement() {
                    <FiTrash2 size={20} />
                  </button>
                </div>
-               {/* Updated from img.url to img.image to match Django Serializer */}
-               <img src={img.image} alt={img.title} className="max-h-full object-contain" />
+               {/* Prepend domain if relative URL from Django */}
+               <img 
+                 src={img.image?.startsWith('http') ? img.image : `http://localhost:8000${img.image}`} 
+                 alt={img.title} 
+                 className="max-h-full object-contain" 
+               />
             </div>
             
-            <div className="p-4 border-t border-border">
+            <div className="p-4 border-t border-border flex-1">
               <h3 className="font-semibold text-text truncate">{img.title}</h3>
-              <p className="text-sm text-text-muted font-lato">{img.category}</p>
+              {/* Display the description. Added a line-clamp so long texts don't break the card size */}
+              {img.description && (
+                <p className="text-sm text-text-muted font-lato mt-1 line-clamp-2" title={img.description}>
+                  {img.description}
+                </p>
+              )}
             </div>
           </motion.div>
         ))}
       </div>
+      
       {images.length === 0 && (
         <div className="bg-white rounded-xl p-8 text-center text-text-muted border border-border font-lato">
           No images uploaded yet.
@@ -192,11 +201,26 @@ export default function GalleryManagement() {
                   <FiX size={24} />
                 </button>
               </div>
+              
               <form onSubmit={handleSubmit} className="p-6 space-y-4 font-lato">
                 <div>
                   <label className="block text-sm font-semibold text-text mb-1">Image Title</label>
                   <input required type="text" name="title" value={formData.title} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. Clinic Front View" />
                 </div>
+                
+                {/* 3. Replaced Category select with Description textarea */}
+                <div>
+                  <label className="block text-sm font-semibold text-text mb-1">Description (Optional)</label>
+                  <textarea 
+                    name="description" 
+                    value={formData.description} 
+                    onChange={handleInputChange} 
+                    rows="2"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors resize-none" 
+                    placeholder="Short description of the image..." 
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-text mb-1">Upload Image</label>
                   <div className="flex items-center gap-4">
@@ -212,15 +236,7 @@ export default function GalleryManagement() {
                     )}
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-1">Category</label>
-                  <select name="category" value={formData.category} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors">
-                    <option value="Facility">Facility</option>
-                    <option value="Team">Team</option>
-                    <option value="Activities">Activities</option>
-                    <option value="Events">Events</option>
-                  </select>
-                </div>
+                
                 <div className="mt-6 flex justify-end gap-3">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-text hover:bg-cream/50 rounded-lg transition-colors">Cancel</button>
                   <button type="submit" className="bg-olive hover:bg-olive-dark text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
