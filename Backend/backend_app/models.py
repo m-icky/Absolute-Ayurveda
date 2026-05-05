@@ -25,17 +25,19 @@ class Gallery(models.Model):
     def __str__(self):
         return self.title
         
+from django.db import models
+
 class ConsultationRequest(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15)
     email = models.EmailField(null=True, blank=True)
     message = models.TextField(null=True, blank=True)
-    status = models.CharField(max_length=20,default='pending')
+    status = models.CharField(max_length=20, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.name} ({self.status})"
-
+                
 class courses(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
