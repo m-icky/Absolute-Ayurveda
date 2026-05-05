@@ -1,19 +1,46 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link"; // Next.js link wait, it's just 'next/link'
-import { packagesData } from "./data";
+import Link from "next/link";
+import { useState, useEffect } from "react";
 import styles from "./Packages.module.css";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
+const API_BASE_URL = "http://127.0.0.1:8000/api/packages/";
+const SERVER_URL = "http://127.0.0.1:8000";
+
 export default function PackagesPage() {
+  const [packages, setPackages] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const response = await fetch(API_BASE_URL);
+        const data = await response.json();
+        setPackages(data);
+      } catch (error) {
+        console.error("Failed to fetch packages:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPackages();
+  }, []);
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop";
+    return imagePath.startsWith('http') ? imagePath : `${SERVER_URL}${imagePath}`;
+  };
+
   return (
     <>
       <Navbar />
-      <main className="pt-32 pb-20 bg-[#f9f9f9] min-h-screen"   style={{
-    background: "linear-gradient(to bottom, #6b7c5b, rgba(249, 249, 249, var(--tw-bg-opacity, 1)))"
-  }}>
+      <main 
+        className="pt-32 pb-20 min-h-screen"   
+        style={{ background: "linear-gradient(to bottom, #6b7c5b, rgba(249, 249, 249, var(--tw-bg-opacity, 1)))" }}
+      >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -29,41 +56,52 @@ export default function PackagesPage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {packagesData.map((pkg, index) => (
-              <motion.div
-                key={pkg.slug}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <div className={styles.card}>
-                  <div className={styles.imageContainer}>
-                    <img src={pkg.image} alt={pkg.title} className={styles.imgElement} />
-                    <div className={styles.cutout}>
-                      <Link href={`/packages/${pkg.slug}`} className={styles.arrowButton} style={{ backgroundColor: pkg.buttonColor }}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M7 17L17 7M17 7H7M17 7V17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </Link>
+          {isLoading ? (
+            <div className="text-white text-center text-xl">Loading packages...</div>
+          ) : packages.length === 0 ? (
+            <div className="text-white text-center text-xl">No packages available.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {packages.map((pkg, index) => (
+                <motion.div
+                  key={pkg.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <div className={styles.card}>
+                    <div className={styles.imageContainer}>
+                      <img src={getImageUrl(pkg.image)} alt={pkg.title} className={styles.imgElement} />
+                      <div className={styles.cutout}>
+                        {/* Links to the specific ID */}
+                        <Link href={`/packages/${pkg.id}`} className={styles.arrowButton} style={{ backgroundColor: "#6b7c5b" }}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7 17L17 7M17 7H7M17 7V17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </Link>
+                      </div>
+                    </div>
+                    
+                    <div className={styles.content}>
+                      
+                      {/* HEADING FIRST */}
+                      <div className={styles.tags} style={{ marginBottom: "12px" }}>
+                        {pkg.heading && (
+                          <span className={styles.tag} style={{ backgroundColor: '#c9b79c', color: 'rgba(0,0,0,0.7)' }}>
+                            {pkg.heading}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* TITLE SECOND */}
+                      <h3 className={styles.title}>{pkg.title}</h3>
+                      
                     </div>
                   </div>
-                  
-                  <div className={styles.content}>
-                    <h3 className={styles.title}>{pkg.title}</h3>
-                    <p className={styles.description}>{pkg.description}</p>
-                    <div className={styles.tags}>
-                      {pkg.tags.map((tag, i) => (
-                        <span key={i} className={styles.tag} style={{ backgroundColor: tag.color, color: 'rgba(0,0,0,0.7)' }}>
-                          {tag.label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
       <Footer />
