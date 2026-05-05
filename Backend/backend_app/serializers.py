@@ -18,6 +18,8 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = courses
         fields = ['id', 'title', 'description', 'image', 'duration', 'level', 'status', 'created_at', 'updated_at']
+
+        
 class PackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Packages
