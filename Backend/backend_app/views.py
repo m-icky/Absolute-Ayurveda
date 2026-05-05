@@ -187,3 +187,40 @@ class PackageDetailView(APIView):
         
         package.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ConsultationListAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        # Fetch all requests, ordered by newest first
+        consultations = ConsultationRequest.objects.all().order_by('-created_at')
+        serializer = ConsultationRequestSerializer(consultations, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        # Handle new bookings from the public website
+        serializer = ConsultationRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ConsultationDetailAPIView(APIView):
+    def get_object(self, pk):
+        try:
+            return ConsultationRequest.objects.get(pk=pk)
+        except ConsultationRequest.DoesNotExist:
+            raise Http404
+
+    def put(self, request, pk, *args, **kwargs):
+        consultation = self.get_object(pk)
+        # partial=True allows updating just the 'status' field without requiring the whole object
+        serializer = ConsultationRequestSerializer(consultation, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, *args, **kwargs):
+        consultation = self.get_object(pk)
+        consultation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

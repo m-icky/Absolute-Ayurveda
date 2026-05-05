@@ -22,3 +22,10 @@ class PackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Packages
         fields = '__all__'
+
+
+
+class ConsultationRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConsultationRequest
+        fields = ['id', 'name', 'phone', 'email', 'message', 'status', 'created_at']

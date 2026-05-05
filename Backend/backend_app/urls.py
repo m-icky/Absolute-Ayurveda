@@ -13,5 +13,6 @@ urlpatterns = [
     path('courses/<int:pk>/', CourseDetailAPIView.as_view(), name='course-detail'),
     path('packages/', PackageListCreateView.as_view(), name='package-list'),
     path('packages/<int:pk>/', PackageDetailView.as_view(), name='package-detail'),
-
+    path('consultations/', ConsultationListAPIView.as_view(), name='consultation-list'),
+    path('consultations/<int:pk>/', ConsultationDetailAPIView.as_view(), name='consultation-detail'),
 ]
