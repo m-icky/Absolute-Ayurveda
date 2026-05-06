@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiPlus, FiEdit, FiTrash2, FiX, FiImage } from "react-icons/fi";
 import { Popover } from "@mui/material";
+import Preloader from "@/components/Preloader";
 
 // Replace with your actual Django backend URL if different
 const API_BASE_URL = "http://127.0.0.1:8000/api/packages/";
@@ -11,6 +12,7 @@ const SERVER_URL = "http://127.0.0.1:8000";
 
 export default function PackagesManagement() {
   const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   
@@ -37,6 +39,8 @@ export default function PackagesManagement() {
       setPackages(data);
     } catch (error) {
       console.error("Failed to fetch packages:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -139,11 +143,14 @@ export default function PackagesManagement() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+    <>
+      <Preloader isLoading={loading} isFullPage={false} />
+      {!loading && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-playfair text-text mb-2">Ayurveda Packages</h1>
@@ -310,5 +317,7 @@ export default function PackagesManagement() {
         </div>
       </Popover>
     </motion.div>
+      )}
+    </>
   );
 }

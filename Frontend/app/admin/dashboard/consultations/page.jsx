@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiCheckCircle, FiXCircle, FiTrash2, FiEye, FiX, FiCalendar, FiUser, FiPhone, FiMail } from "react-icons/fi";
 import { Popover } from "@mui/material";
+import Preloader from "@/components/Preloader";
 
 const API_BASE_URL = "http://localhost:8000/api/consultations/";
 
 export default function ConsultationsManagement() {
   const [consultations, setConsultations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedConsultation, setSelectedConsultation] = useState(null);
   const [deleteAnchorEl, setDeleteAnchorEl] = useState(null);
@@ -23,6 +25,7 @@ export default function ConsultationsManagement() {
         setConsultations(data);
       }
     } catch (error) { console.error("Failed to fetch consultations:", error); }
+    finally { setLoading(false); }
   };
 
   const handleConfirm = async (id) => {
@@ -64,13 +67,16 @@ export default function ConsultationsManagement() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-playfair text-text mb-2">Consultation Bookings</h1>
-          <p className="text-text-muted font-lato">View and manage consultation requests from patients.</p>
-        </div>
-      </div>
+    <>
+      <Preloader isLoading={loading} isFullPage={false} />
+      {!loading && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-playfair text-text mb-2">Consultation Bookings</h1>
+              <p className="text-text-muted font-lato">View and manage consultation requests from patients.</p>
+            </div>
+          </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
         <div className="overflow-x-auto">
@@ -175,5 +181,7 @@ export default function ConsultationsManagement() {
         </div>
       </Popover>
     </motion.div>
+      )}
+    </>
   );
 }

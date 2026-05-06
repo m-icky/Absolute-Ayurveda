@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { FiEye, FiEyeOff, FiArrowLeft } from "react-icons/fi";
+import Link from "next/link";
 import HomeBg from "../../assets/ayurveda-hero1.png";
 import { loginRequest, saveTokens } from "@/lib/auth";
+import Preloader from "@/components/Preloader";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -13,8 +16,10 @@ export default function AdminLogin() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error,    setError]    = useState("");
   const [loading,  setLoading]  = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
   // Forgot password modal
   const [showForgot,      setShowForgot]      = useState(false);
@@ -30,6 +35,7 @@ export default function AdminLogin() {
     try {
       const data = await loginRequest(username, password);
       saveTokens(data);
+      setLoginSuccess(true);
       router.push("/admin/dashboard");
     } catch (err) {
       setError(err.message);
@@ -74,6 +80,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-cream p-4 sm:p-8">
+      {loginSuccess && <Preloader isLoading={true} />}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -102,7 +109,11 @@ export default function AdminLogin() {
         </div>
 
         {/* Right Side */}
-        <div className="w-full md:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-center bg-white">
+        <div className="w-full md:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-center bg-white relative">
+          <Link href="/" className="absolute top-6 right-6 sm:top-8 sm:right-8 flex items-center gap-2 text-sm font-lato text-text-muted hover:text-olive transition-colors">
+            <FiArrowLeft size={16} /> Back to Site
+          </Link>
+
           <div className="md:hidden flex justify-center mb-8">
             <img src="/absoluteayur.png" alt="Logo" className="w-32" />
           </div>
@@ -132,11 +143,20 @@ export default function AdminLogin() {
                     Forgot password?
                   </button>
                 </div>
-                <input
-                  type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-border focus:border-olive focus:ring-1 focus:ring-olive outline-none transition-all font-lato bg-cream/30"
-                  placeholder="••••••••" autoComplete="current-password" required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 pr-11 rounded-lg border border-border focus:border-olive focus:ring-1 focus:ring-olive outline-none transition-all font-lato bg-cream/30"
+                    placeholder="••••••••" autoComplete="current-password" required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(p => !p)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
+                  >
+                    {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                  </button>
+                </div>
               </div>
 
               {error && (

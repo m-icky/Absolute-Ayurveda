@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiPlus, FiEdit, FiTrash2, FiX, FiUploadCloud } from "react-icons/fi";
 import { Popover } from "@mui/material";
+import Preloader from "@/components/Preloader";
 
 const API_BASE_URL = "http://localhost:8000/api/courses/";
 
 export default function CoursesManagement() {
   const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   
@@ -37,6 +39,8 @@ export default function CoursesManagement() {
       }
     } catch (error) {
       console.error("Failed to fetch courses:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -150,11 +154,14 @@ export default function CoursesManagement() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+    <>
+      <Preloader isLoading={loading} isFullPage={false} />
+      {!loading && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-playfair text-text mb-2">School of Ayurveda</h1>
@@ -333,5 +340,7 @@ export default function CoursesManagement() {
         </div>
       </Popover>
     </motion.div>
+      )}
+    </>
   );
 }

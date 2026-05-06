@@ -2,15 +2,19 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function Preloader() {
+export default function Preloader({ isLoading, isFullPage = true }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isLoading !== undefined) {
+      setLoading(isLoading);
+      return;
+    }
     const timer = setTimeout(() => {
       setLoading(false);
     }, 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isLoading]);
 
   return (
     <AnimatePresence>
@@ -21,7 +25,7 @@ export default function Preloader() {
           exit={{ opacity: 0, y: "-100%" }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
           style={{
-            position: "fixed",
+            position: isFullPage ? "fixed" : "absolute",
             inset: 0,
             zIndex: 99999,
             background: "#F8F6F0",
