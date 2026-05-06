@@ -102,14 +102,14 @@ export default function DashboardWrapper({ children }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-cream">
+    <div className="flex h-screen bg-cream overflow-hidden">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       <motion.div
         initial={false}
         animate={{ marginLeft: isCollapsed ? 80 : 256 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="flex-1 flex flex-col min-h-screen overflow-hidden"
+        className="flex-1 flex flex-col h-screen overflow-hidden"
       >
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-border p-4 flex items-center justify-between shrink-0 z-40 sticky top-0">
@@ -132,7 +132,7 @@ export default function DashboardWrapper({ children }) {
           </button>
         </header>
 
-        <div className="flex-1 p-8 overflow-y-auto h-[calc(100vh-73px)]">
+        <div className="flex-1 p-8 overflow-y-auto relative">
           <main className="max-w-7xl mx-auto">
             {children}
           </main>

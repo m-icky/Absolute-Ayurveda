@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiUploadCloud, FiTrash2, FiX, FiImage } from "react-icons/fi";
 import { Popover } from "@mui/material";
+import Preloader from "@/components/Preloader";
 
 const API_BASE_URL = "http://localhost:8000/api/gallery/"; 
 
 export default function GalleryManagement() {
   const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   // 1. Updated formData to use description instead of category
   const [formData, setFormData] = useState({ title: "", description: "" });
@@ -31,6 +33,8 @@ export default function GalleryManagement() {
       }
     } catch (error) {
       console.error("Failed to fetch images:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,11 +124,14 @@ export default function GalleryManagement() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+    <>
+      <Preloader isLoading={loading} isFullPage={false} />
+      {!loading && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-playfair text-text mb-2">Gallery Images</h1>
@@ -272,5 +279,7 @@ export default function GalleryManagement() {
         </div>
       </Popover>
     </motion.div>
+      )}
+    </>
   );
 }

@@ -6,6 +6,7 @@ import { FiUsers, FiImage, FiBook, FiBox, FiCalendar, FiDownload, FiChevronDown 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import Preloader from "@/components/Preloader";
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
@@ -178,13 +179,13 @@ export default function DashboardOverview() {
     }, 300);
   };
 
-  if (isLoading) {
-    return <div className="p-10 text-center font-lato text-text-muted">Loading dashboard data...</div>;
-  }
-
+  // Removed the early return for isLoading so we can mount Preloader and keep AnimatePresence working.
   return (
-    <div ref={dashboardRef} className="pb-10 bg-cream p-4 rounded-xl">
-      <motion.div
+    <>
+      <Preloader isLoading={isLoading} isFullPage={false} />
+      {!isLoading && (
+        <div ref={dashboardRef} className="pb-10 bg-cream p-4 rounded-xl">
+          <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -307,5 +308,7 @@ export default function DashboardOverview() {
 
       </motion.div>
     </div>
+      )}
+    </>
   );
 }

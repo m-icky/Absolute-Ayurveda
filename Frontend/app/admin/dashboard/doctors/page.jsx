@@ -6,6 +6,7 @@ import { FiPlus, FiEdit, FiTrash2, FiX } from "react-icons/fi";
 import { Popover } from "@mui/material";
 import { authHeaders, logout } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import Preloader from "@/components/Preloader";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/specialists/`;
 
@@ -171,12 +172,11 @@ export default function DoctorsManagement() {
 
   const deleteOpen = Boolean(deleteAnchorEl);
 
-  if (loading) {
-    return <div className="p-10 text-center font-lato text-text-muted">Loading doctors...</div>;
-  }
-
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <>
+      <Preloader isLoading={loading} isFullPage={false} />
+      {!loading && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
@@ -364,5 +364,7 @@ export default function DoctorsManagement() {
       </Popover>
 
     </motion.div>
+      )}
+    </>
   );
 }
