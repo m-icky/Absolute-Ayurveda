@@ -9,7 +9,8 @@ urlpatterns = [
 
     path('auth/change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('auth/forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
-    path('auth/reset-password/',  ResetPasswordView.as_view(),  name='reset-password'),  
+    path('auth/reset-password/',  ResetPasswordView.as_view(),  name='reset-password'), 
+    path('auth/profile/', AdminProfileView.as_view(), name='admin-profile'), 
 
     path('gallery/',          GalleryListCreateAPIView.as_view(), name='gallery-list-create'),
     path('gallery/<int:pk>/', GalleryDetailAPIView.as_view(),     name='gallery-detail'),

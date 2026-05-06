@@ -10,7 +10,6 @@ import {
   FiBox, 
   FiCalendar, 
   FiLogOut,
-  FiLock
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { logout } from "@/lib/auth";
@@ -20,13 +19,12 @@ export default function Sidebar({ isCollapsed }) {
   const router = useRouter();
 
   const navItems = [
-    { name: "Overview",      href: "/admin/dashboard",                  icon: FiHome     },
-    { name: "Doctors",       href: "/admin/dashboard/doctors",          icon: FiUsers    },
-    { name: "Gallery",       href: "/admin/dashboard/gallery",          icon: FiImage    },
-    { name: "Courses",       href: "/admin/dashboard/courses",          icon: FiBook     },
-    { name: "Packages",      href: "/admin/dashboard/packages",         icon: FiBox      },
-    { name: "Consultations", href: "/admin/dashboard/consultations",    icon: FiCalendar },
-    { name: "Change Password", href: "/admin/dashboard/change-password", icon: FiLock    },
+    { name: "Overview",      href: "/admin/dashboard",               icon: FiHome     },
+    { name: "Doctors",       href: "/admin/dashboard/doctors",       icon: FiUsers    },
+    { name: "Gallery",       href: "/admin/dashboard/gallery",       icon: FiImage    },
+    { name: "Courses",       href: "/admin/dashboard/courses",       icon: FiBook     },
+    { name: "Packages",      href: "/admin/dashboard/packages",      icon: FiBox      },
+    { name: "Consultations", href: "/admin/dashboard/consultations", icon: FiCalendar },
   ];
 
   return (
