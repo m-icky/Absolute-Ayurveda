@@ -113,7 +113,7 @@ export default function PackageDetailsPage() {
               
               {pkg.price && (
                 <div className="text-2xl font-semibold text-[#6b7c5b] mb-8">
-                  {pkg.price}
+                  {pkg.price} ₹
                 </div>
               )}
 
