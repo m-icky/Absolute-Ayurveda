@@ -355,3 +355,37 @@ class ChangePasswordView(APIView):
         user.set_password(new_password)
         user.save()
         return Response({"success": "Password changed successfully."}, status=status.HTTP_200_OK)
+
+
+class AdminProfileView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            "username":   user.username,
+            "email":      user.email,
+            "first_name": user.first_name,
+            "last_name":  user.last_name,
+            "phone":      user.profile.phone if hasattr(user, 'profile') else "",
+        })
+
+    def put(self, request):
+        user = request.user
+        data = request.data
+
+        user.first_name = data.get("first_name", user.first_name)
+        user.last_name  = data.get("last_name",  user.last_name)
+        user.email      = data.get("email",      user.email)
+        user.username   = data.get("username",   user.username)
+        user.save()
+
+        phone = data.get("phone", "")
+        if hasattr(user, 'profile'):
+            user.profile.phone = phone
+            user.profile.save()
+        else:
+            AdminProfile.objects.update_or_create(user=user, defaults={"phone": phone})
+
+        return Response({"success": "Profile updated successfully."})
