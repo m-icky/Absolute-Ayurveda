@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   FiHome, 
   FiUsers, 
@@ -9,20 +9,24 @@ import {
   FiBook, 
   FiBox, 
   FiCalendar, 
-  FiLogOut 
+  FiLogOut,
+  FiLock
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { logout } from "@/lib/auth";
 
 export default function Sidebar({ isCollapsed }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const navItems = [
-    { name: "Overview", href: "/admin/dashboard", icon: FiHome },
-    { name: "Doctors", href: "/admin/dashboard/doctors", icon: FiUsers },
-    { name: "Gallery", href: "/admin/dashboard/gallery", icon: FiImage },
-    { name: "Courses", href: "/admin/dashboard/courses", icon: FiBook },
-    { name: "Packages", href: "/admin/dashboard/packages", icon: FiBox },
-    { name: "Consultations", href: "/admin/dashboard/consultations", icon: FiCalendar },
+    { name: "Overview",      href: "/admin/dashboard",                  icon: FiHome     },
+    { name: "Doctors",       href: "/admin/dashboard/doctors",          icon: FiUsers    },
+    { name: "Gallery",       href: "/admin/dashboard/gallery",          icon: FiImage    },
+    { name: "Courses",       href: "/admin/dashboard/courses",          icon: FiBook     },
+    { name: "Packages",      href: "/admin/dashboard/packages",         icon: FiBox      },
+    { name: "Consultations", href: "/admin/dashboard/consultations",    icon: FiCalendar },
+    { name: "Change Password", href: "/admin/dashboard/change-password", icon: FiLock    },
   ];
 
   return (
@@ -53,7 +57,7 @@ export default function Sidebar({ isCollapsed }) {
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
             >
-               <div className="w-10 h-10 bg-black/30 rounded-lg flex items-center justify-center font-playfair font-bold text-xl drop-shadow-md border border-white/10">A</div>
+              <div className="w-10 h-10 bg-black/30 rounded-lg flex items-center justify-center font-playfair font-bold text-xl drop-shadow-md border border-white/10">A</div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -102,10 +106,12 @@ export default function Sidebar({ isCollapsed }) {
         </ul>
       </nav>
 
-
       {/* Logout */}
       <div className="p-4 border-t border-olive-dark">
-        <Link href="/admin" className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3 px-4'} py-3 rounded-lg text-cream/80 hover:text-red-400 hover:bg-olive-dark/50 transition-colors relative`}>
+        <button
+          onClick={() => logout(router)}
+          className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3 px-4'} py-3 rounded-lg text-cream/80 hover:text-red-400 hover:bg-olive-dark/50 transition-colors`}
+        >
           <FiLogOut size={22} className="shrink-0" />
           <AnimatePresence>
             {!isCollapsed && (
@@ -119,7 +125,7 @@ export default function Sidebar({ isCollapsed }) {
               </motion.span>
             )}
           </AnimatePresence>
-        </Link>
+        </button>
       </div>
     </motion.div>
   );

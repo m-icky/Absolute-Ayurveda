@@ -14,8 +14,8 @@ export default function DashboardOverview() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Store raw data from the API
+  const [isMounted, setIsMounted] = useState(false);
+
   const [rawData, setRawData] = useState({
     doctors: [],
     gallery: [],
@@ -23,10 +23,13 @@ export default function DashboardOverview() {
     packages: [],
     consultations: []
   });
-  
+
   const dashboardRef = useRef(null);
 
-  // Fetch all dashboard data once on load
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -56,25 +59,21 @@ export default function DashboardOverview() {
     fetchDashboardData();
   }, []);
 
-  // Filter consultations based on the selected Report Type
   const getFilteredConsultations = () => {
     const now = new Date();
-    
+
     return rawData.consultations.filter(c => {
       if (!c.created_at) return false;
       const cDate = new Date(c.created_at);
-      
+
       if (reportType === "Daily") {
-        // Must be today
         return cDate.toDateString() === now.toDateString();
-      } 
+      }
       else if (reportType === "Weekly") {
-        // Within the last 7 days
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         return cDate >= sevenDaysAgo;
-      } 
+      }
       else if (reportType === "Monthly") {
-        // Within the last 30 days
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         return cDate >= thirtyDaysAgo;
       }
@@ -82,23 +81,19 @@ export default function DashboardOverview() {
     });
   };
 
-  // Dynamically calculate the stats for the top cards
   const filteredConsultations = getFilteredConsultations();
   const pendingFilteredCount = filteredConsultations.filter(c => c.status === 'pending').length;
 
   const dynamicStats = [
-    { title: "Total Doctors", count: rawData.doctors.length || 0, icon: FiUsers, color: "bg-blue-100 text-blue-600" },
-    { title: "Gallery Images", count: rawData.gallery.length || 0, icon: FiImage, color: "bg-pink-100 text-pink-600" },
-    { title: "Active Courses", count: rawData.courses.length || 0, icon: FiBook, color: "bg-green-100 text-green-600" },
-    { title: "Packages", count: rawData.packages.length || 0, icon: FiBox, color: "bg-purple-100 text-purple-600" },
-    // This stat changes based on the dropdown (Daily/Weekly/Monthly)
-    { title: `New Requests (${reportType})`, count: pendingFilteredCount, icon: FiCalendar, color: "bg-yellow-100 text-yellow-600" },
+    { title: "Total Doctors",            count: rawData.doctors.length || 0,  icon: FiUsers,    color: "bg-blue-100 text-blue-600"   },
+    { title: "Gallery Images",           count: rawData.gallery.length || 0,  icon: FiImage,    color: "bg-pink-100 text-pink-600"   },
+    { title: "Active Courses",           count: rawData.courses.length || 0,  icon: FiBook,     color: "bg-green-100 text-green-600" },
+    { title: "Packages",                 count: rawData.packages.length || 0, icon: FiBox,      color: "bg-purple-100 text-purple-600" },
+    { title: `New Requests (${reportType})`, count: pendingFilteredCount,     icon: FiCalendar, color: "bg-yellow-100 text-yellow-600" },
   ];
 
-  // Dynamically process chart data based on the selected report type
   const getDynamicChartData = () => {
     if (reportType === "Daily") {
-      // Last 7 Days chart view
       const days = Array.from({ length: 7 }).map((_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (6 - i));
@@ -116,14 +111,13 @@ export default function DashboardOverview() {
         if (dayMatch) dayMatch.consultations++;
       });
       return days;
-    } 
-    
+    }
+
     if (reportType === "Weekly") {
-      // Last 4 Weeks chart view
       const weeks = Array.from({ length: 4 }).map((_, i) => ({
         name: `Week ${4 - i}`,
         start: new Date(new Date().setDate(new Date().getDate() - (7 * (4 - i)))),
-        end: new Date(new Date().setDate(new Date().getDate() - (7 * (3 - i)))),
+        end:   new Date(new Date().setDate(new Date().getDate() - (7 * (3 - i)))),
         consultations: 0
       }));
 
@@ -137,14 +131,13 @@ export default function DashboardOverview() {
     }
 
     if (reportType === "Monthly") {
-      // Last 6 Months chart view
       const months = Array.from({ length: 6 }).map((_, i) => {
         const d = new Date();
         d.setMonth(d.getMonth() - (5 - i));
         return {
           month: d.getMonth(),
-          year: d.getFullYear(),
-          name: d.toLocaleDateString('en-US', { month: 'short' }),
+          year:  d.getFullYear(),
+          name:  d.toLocaleDateString('en-US', { month: 'short' }),
           consultations: 0
         };
       });
@@ -164,17 +157,17 @@ export default function DashboardOverview() {
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     setShowDropdown(false);
-    
+
     setTimeout(async () => {
       try {
         const element = dashboardRef.current;
         const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#F7F5F0" });
         const imgData = canvas.toDataURL("image/png");
-        
+
         const pdf = new jsPDF("p", "mm", "a4");
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        
+
         pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
         pdf.save(`Absolute_Ayurveda_${reportType}_Report.pdf`);
       } catch (error) {
@@ -196,19 +189,20 @@ export default function DashboardOverview() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-playfair text-text mb-2">Dashboard Overview</h1>
             <p className="text-text-muted font-lato">Welcome to the Absolute Ayurveda admin panel.</p>
           </div>
-          
+
           {/* Download Dropdown */}
           <div className="relative" data-html2canvas-ignore>
             <div className="flex bg-white border border-border rounded-lg shadow-sm cursor-pointer" onClick={() => setShowDropdown(!showDropdown)}>
               <div className="px-4 py-2 border-r border-border text-sm font-medium text-text bg-gray-50 flex items-center">
                 <FiDownload className="mr-2" /> Report: {reportType}
               </div>
-              <button 
+              <button
                 disabled={isDownloading}
                 className="px-3 py-2 flex items-center hover:bg-gray-50 transition-colors"
               >
@@ -216,7 +210,7 @@ export default function DashboardOverview() {
                 <FiChevronDown />
               </button>
             </div>
-            
+
             <AnimatePresence>
               {showDropdown && (
                 <motion.div
@@ -272,8 +266,8 @@ export default function DashboardOverview() {
             );
           })}
         </div>
-        
-        {/* Full-width Chart Section */}
+
+        {/* Chart */}
         <div className="w-full mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -281,28 +275,32 @@ export default function DashboardOverview() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="bg-white rounded-xl p-6 shadow-sm border border-border"
           >
-            <h3 className="text-xl font-playfair font-bold text-text mb-6">Consultations Overview ({reportType})</h3>
+            <h3 className="text-xl font-playfair font-bold text-text mb-6">
+              Consultations Overview ({reportType})
+            </h3>
             <div className="h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={getDynamicChartData()} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="name" stroke="#888" fontSize={12} />
-                  <YAxis stroke="#888" fontSize={12} allowDecimals={false} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="consultations" 
-                    stroke="#D4AF37" 
-                    strokeWidth={3} 
-                    dot={{ r: 4 }} 
-                    activeDot={{ r: 6 }} 
-                    name="Consultations" 
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {isMounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={getDynamicChartData()} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="name" stroke="#888" fontSize={12} />
+                    <YAxis stroke="#888" fontSize={12} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="consultations"
+                      stroke="#D4AF37"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                      name="Consultations"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </motion.div>
         </div>

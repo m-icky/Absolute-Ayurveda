@@ -7,8 +7,43 @@ from .serializers import *
 from rest_framework.decorators import api_view
 from django.http import Http404
 
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
+
+class AdminLoginView(APIView):
+    def post(self, request):
+        username = request.data.get("username", "").strip()
+        password = request.data.get("password", "")
+
+        if not username or not password:
+            return Response({"error": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is None:
+            return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not (user.is_staff or user.is_superuser):
+            return Response({"error": "You do not have admin access."}, status=status.HTTP_403_FORBIDDEN)
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "username": user.username,
+        }, status=status.HTTP_200_OK)
+
+
+class AdminTokenVerifyView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({"valid": True, "username": request.user.username})
 
 class GalleryListCreateAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -220,3 +255,32 @@ class ConsultationDetailAPIView(APIView):
         consultation = self.get_object(pk)
         consultation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+from django.contrib.auth.hashers import check_password
+
+class ChangePasswordView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        current_password = request.data.get("current_password", "")
+        new_password     = request.data.get("new_password", "")
+        confirm_password = request.data.get("confirm_password", "")
+
+        if not current_password or not new_password or not confirm_password:
+            return Response({"error": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(current_password):
+            return Response({"error": "Current password is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != confirm_password:
+            return Response({"error": "New passwords do not match."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 8:
+            return Response({"error": "Password must be at least 8 characters."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"success": "Password changed successfully."}, status=status.HTTP_200_OK)

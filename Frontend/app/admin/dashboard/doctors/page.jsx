@@ -4,13 +4,17 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiPlus, FiEdit, FiTrash2, FiX } from "react-icons/fi";
 import { Popover } from "@mui/material";
+import { authHeaders, logout } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
-const API_URL = "http://127.0.0.1:8000/api/specialists/";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/specialists/`;
 
 export default function DoctorsManagement() {
+  const router = useRouter();
   const [doctors, setDoctors] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -30,9 +34,23 @@ export default function DoctorsManagement() {
 
   // FETCH
   const fetchDoctors = async () => {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    setDoctors(data);
+    try {
+      const res = await fetch(API_URL, {
+        headers: authHeaders(),
+      });
+
+      if (res.status === 401) {
+        logout(router);
+        return;
+      }
+
+      const data = await res.json();
+      setDoctors(data);
+    } catch (error) {
+      console.error("Failed to fetch doctors:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -55,27 +73,19 @@ export default function DoctorsManagement() {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
 
-    // remove error when typing
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   // VALIDATION
   const validate = () => {
     let newErrors = {};
-
-    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.name.trim())        newErrors.name        = "Name is required";
     if (!formData.designation.trim()) newErrors.designation = "Designation is required";
-    if (!formData.specialty.trim()) newErrors.specialty = "Specialty is required";
+    if (!formData.specialty.trim())   newErrors.specialty   = "Specialty is required";
     if (!formData.description.trim()) newErrors.description = "Description is required";
-
-    if (formData.experience === "" || formData.experience <= 0) {
-      newErrors.experience = "Valid experience is required";
-    }
-
-    if (!editId && !formData.image) {
-      newErrors.image = "Image is required";
-    }
-
+    if (formData.experience === "" || formData.experience <= 0)
+                                      newErrors.experience  = "Valid experience is required";
+    if (!editId && !formData.image)   newErrors.image       = "Image is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -83,15 +93,7 @@ export default function DoctorsManagement() {
   // ADD
   const handleAddClick = () => {
     setEditId(null);
-    setFormData({
-      name: "",
-      designation: "",
-      specialty: "",
-      description: "",
-      experience: "",
-      status: "active",
-      image: null,
-    });
+    setFormData({ name: "", designation: "", specialty: "", description: "", experience: "", status: "active", image: null });
     setPreview(null);
     setErrors({});
     setIsModalOpen(true);
@@ -101,13 +103,13 @@ export default function DoctorsManagement() {
   const handleEditClick = (doc) => {
     setEditId(doc.id);
     setFormData({
-      name: doc.name || "",
+      name:        doc.name        || "",
       designation: doc.designation || "",
-      specialty: doc.specialty || "",
+      specialty:   doc.specialty   || "",
       description: doc.description || "",
-      experience: doc.experience ?? "",
-      status: doc.status || "active",
-      image: null,
+      experience:  doc.experience  ?? "",
+      status:      doc.status      || "active",
+      image:       null,
     });
     setPreview(doc.image || null);
     setErrors({});
@@ -117,11 +119,9 @@ export default function DoctorsManagement() {
   // SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validate()) return; // stop if invalid
+    if (!validate()) return;
 
     const form = new FormData();
-
     Object.keys(formData).forEach((key) => {
       if (formData[key] !== null && formData[key] !== "") {
         form.append(key, formData[key]);
@@ -129,12 +129,18 @@ export default function DoctorsManagement() {
     });
 
     const method = editId ? "PUT" : "POST";
-    const url = editId ? `${API_URL}${editId}/` : API_URL;
+    const url    = editId ? `${API_URL}${editId}/` : API_URL;
 
-    await fetch(url, {
+    // For multipart/form-data, only pass Authorization — not Content-Type
+    const token = authHeaders().Authorization;
+
+    const res = await fetch(url, {
       method,
+      headers: token ? { Authorization: token } : {},
       body: form,
     });
+
+    if (res.status === 401) { logout(router); return; }
 
     setIsModalOpen(false);
     fetchDoctors();
@@ -152,27 +158,32 @@ export default function DoctorsManagement() {
   };
 
   const confirmDelete = async () => {
-    await fetch(`${API_URL}${itemToDelete}/`, { method: "DELETE" });
+    const res = await fetch(`${API_URL}${itemToDelete}/`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+
+    if (res.status === 401) { logout(router); return; }
+
     fetchDoctors();
     handleDeleteClose();
   };
 
   const deleteOpen = Boolean(deleteAnchorEl);
 
+  if (loading) {
+    return <div className="p-10 text-center font-lato text-text-muted">Loading doctors...</div>;
+  }
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      
+
       {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-playfair text-text mb-2">
-            Doctors Management
-          </h1>
-          <p className="text-text-muted font-lato">
-            Manage the list of our specialists and doctors.
-          </p>
+          <h1 className="text-3xl font-playfair text-text mb-2">Doctors Management</h1>
+          <p className="text-text-muted font-lato">Manage the list of our specialists and doctors.</p>
         </div>
-
         <button
           onClick={handleAddClick}
           className="bg-olive hover:bg-olive-dark text-white px-4 py-2 rounded-lg flex items-center gap-2"
@@ -199,37 +210,36 @@ export default function DoctorsManagement() {
 
             <tbody>
               {doctors.map((doc) => (
-                <tr key={doc.id} className="hover:bg-cream/20">
+                <tr key={doc.id} className="hover:bg-cream/20 border-b border-border/50">
                   <td className="px-6 py-4">
                     {doc.image && (
                       <img
-                        src={doc.image.startsWith("http") ? doc.image : `http://127.0.0.1:8000${doc.image}`}
+                        src={doc.image.startsWith("http") ? doc.image : `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}${doc.image}`}
                         className="w-12 h-12 rounded object-cover"
+                        alt={doc.name}
                       />
                     )}
                   </td>
-
-                  <td className="px-6 py-4">{doc.name}</td>
-                  <td className="px-6 py-4">{doc.designation}</td>
-                  <td className="px-6 py-4">{doc.specialty}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 font-lato text-text">{doc.name}</td>
+                  <td className="px-6 py-4 font-lato text-text-muted">{doc.designation}</td>
+                  <td className="px-6 py-4 font-lato text-text-muted">{doc.specialty}</td>
+                  <td className="px-6 py-4 font-lato text-text-muted">
                     {doc.experience ? `${doc.experience} Years` : "-"}
                   </td>
-
                   <td className="px-6 py-4">
-                    <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                    <span className={`px-3 py-1 rounded-full text-xs ${doc.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                       {doc.status}
                     </span>
                   </td>
-
-                  <td className="px-6 py-4 flex justify-end gap-3">
-                    <button onClick={() => handleEditClick(doc)}>
-                      <FiEdit />
-                    </button>
-
-                    <button onClick={(e) => handleDeleteClick(e, doc.id)}>
-                      <FiTrash2 />
-                    </button>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end gap-3">
+                      <button onClick={() => handleEditClick(doc)} className="text-text-muted hover:text-olive transition-colors">
+                        <FiEdit size={18} />
+                      </button>
+                      <button onClick={(e) => handleDeleteClick(e, doc.id)} className="text-text-muted hover:text-red-500 transition-colors">
+                        <FiTrash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -238,65 +248,93 @@ export default function DoctorsManagement() {
         </div>
 
         {doctors.length === 0 && (
-          <div className="p-8 text-center text-text-muted">
-            No doctors found
-          </div>
+          <div className="p-8 text-center text-text-muted font-lato">No doctors found</div>
         )}
       </div>
 
       {/* MODAL */}
       <AnimatePresence>
         {isModalOpen && (
-          <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <motion.div className="bg-white rounded-xl w-full max-w-md">
-              <div className="flex justify-between p-6 border-b">
-                <h2>{editId ? "Edit Doctor" : "Add Doctor"}</h2>
-                <button onClick={() => setIsModalOpen(false)}>
-                  <FiX />
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex justify-between items-center p-6 border-b border-border">
+                <h2 className="text-xl font-playfair text-text font-bold">
+                  {editId ? "Edit Doctor" : "Add Doctor"}
+                </h2>
+                <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text transition-colors">
+                  <FiX size={20} />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
 
                 <div>
-                  <input name="name" value={formData.name} onChange={handleInputChange} placeholder="Name" className="w-full border p-2" />
-                  {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
+                  <label className="block text-sm font-medium text-text-muted mb-1 font-lato">Name</label>
+                  <input name="name" value={formData.name} onChange={handleInputChange} placeholder="Dr. John Doe"
+                    className="w-full border border-border rounded-lg px-4 py-2.5 font-lato focus:border-olive focus:ring-1 focus:ring-olive outline-none" />
+                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
 
                 <div>
-                  <input name="designation" value={formData.designation} onChange={handleInputChange} placeholder="Designation" className="w-full border p-2" />
-                  {errors.designation && <p className="text-red-500 text-xs">{errors.designation}</p>}
+                  <label className="block text-sm font-medium text-text-muted mb-1 font-lato">Designation</label>
+                  <input name="designation" value={formData.designation} onChange={handleInputChange} placeholder="Senior Physician"
+                    className="w-full border border-border rounded-lg px-4 py-2.5 font-lato focus:border-olive focus:ring-1 focus:ring-olive outline-none" />
+                  {errors.designation && <p className="text-red-500 text-xs mt-1">{errors.designation}</p>}
                 </div>
 
                 <div>
-                  <input name="specialty" value={formData.specialty} onChange={handleInputChange} placeholder="Specialty" className="w-full border p-2" />
-                  {errors.specialty && <p className="text-red-500 text-xs">{errors.specialty}</p>}
+                  <label className="block text-sm font-medium text-text-muted mb-1 font-lato">Specialty</label>
+                  <input name="specialty" value={formData.specialty} onChange={handleInputChange} placeholder="Ayurvedic Medicine"
+                    className="w-full border border-border rounded-lg px-4 py-2.5 font-lato focus:border-olive focus:ring-1 focus:ring-olive outline-none" />
+                  {errors.specialty && <p className="text-red-500 text-xs mt-1">{errors.specialty}</p>}
                 </div>
 
                 <div>
-                  <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Description" className="w-full border p-2" />
-                  {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
+                  <label className="block text-sm font-medium text-text-muted mb-1 font-lato">Description</label>
+                  <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Brief description..." rows={3}
+                    className="w-full border border-border rounded-lg px-4 py-2.5 font-lato focus:border-olive focus:ring-1 focus:ring-olive outline-none resize-none" />
+                  {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
                 </div>
 
                 <div>
-                  <input type="number" name="experience" value={formData.experience ?? ""} onChange={handleInputChange} placeholder="Experience (years)" className="w-full border p-2" />
-                  {errors.experience && <p className="text-red-500 text-xs">{errors.experience}</p>}
+                  <label className="block text-sm font-medium text-text-muted mb-1 font-lato">Experience (years)</label>
+                  <input type="number" name="experience" value={formData.experience ?? ""} onChange={handleInputChange} placeholder="10"
+                    className="w-full border border-border rounded-lg px-4 py-2.5 font-lato focus:border-olive focus:ring-1 focus:ring-olive outline-none" />
+                  {errors.experience && <p className="text-red-500 text-xs mt-1">{errors.experience}</p>}
                 </div>
 
                 <div>
-                  <input type="file" name="image" onChange={handleInputChange} />
-                  {errors.image && <p className="text-red-500 text-xs">{errors.image}</p>}
-                  {preview && <img src={preview} className="w-20 h-20 mt-2 object-cover" />}
+                  <label className="block text-sm font-medium text-text-muted mb-1 font-lato">Image</label>
+                  <input type="file" name="image" accept="image/*" onChange={handleInputChange}
+                    className="w-full border border-border rounded-lg px-4 py-2.5 font-lato text-sm" />
+                  {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image}</p>}
+                  {preview && <img src={preview} className="w-20 h-20 mt-2 object-cover rounded-lg" alt="Preview" />}
                 </div>
 
-                <select name="status" value={formData.status} onChange={handleInputChange} className="w-full border p-2">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1 font-lato">Status</label>
+                  <select name="status" value={formData.status} onChange={handleInputChange}
+                    className="w-full border border-border rounded-lg px-4 py-2.5 font-lato focus:border-olive focus:ring-1 focus:ring-olive outline-none">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
 
-                <div className="flex justify-end gap-2">
-                  <button type="button" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                  <button type="submit" className="bg-olive text-white px-4 py-2 rounded">Save</button>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 rounded-lg border border-border text-text-muted font-lato hover:bg-gray-50 transition-colors">
+                    Cancel
+                  </button>
+                  <button type="submit"
+                    className="bg-olive hover:bg-olive-dark text-white px-6 py-2 rounded-lg font-lato transition-colors">
+                    Save
+                  </button>
                 </div>
 
               </form>
@@ -305,16 +343,26 @@ export default function DoctorsManagement() {
         )}
       </AnimatePresence>
 
-      {/* DELETE */}
-      <Popover open={deleteOpen} anchorEl={deleteAnchorEl} onClose={handleDeleteClose}>
-        <div className="p-4">
-          <p>Delete this doctor?</p>
-          <div className="flex gap-2 mt-2">
-            <button onClick={handleDeleteClose}>Cancel</button>
-            <button onClick={confirmDelete} className="bg-red-500 text-white px-3 py-1">Delete</button>
+      {/* DELETE POPOVER */}
+      <Popover open={deleteOpen} anchorEl={deleteAnchorEl} onClose={handleDeleteClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        transformOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <div className="p-4 font-lato">
+          <p className="text-text text-sm mb-3">Delete this doctor?</p>
+          <div className="flex gap-2">
+            <button onClick={handleDeleteClose}
+              className="px-3 py-1.5 text-sm border border-border rounded-lg text-text-muted hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
+            <button onClick={confirmDelete}
+              className="px-3 py-1.5 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
+              Delete
+            </button>
           </div>
         </div>
       </Popover>
+
     </motion.div>
   );
 }
