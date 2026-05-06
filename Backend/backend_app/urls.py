@@ -8,7 +8,8 @@ urlpatterns = [
     path('auth/verify/', AdminTokenVerifyView.as_view(), name='admin-token-verify'),
 
     path('auth/change-password/', ChangePasswordView.as_view(), name='change-password'),
-    
+    path('auth/forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
+    path('auth/reset-password/',  ResetPasswordView.as_view(),  name='reset-password'),  
 
     path('gallery/',          GalleryListCreateAPIView.as_view(), name='gallery-list-create'),
     path('gallery/<int:pk>/', GalleryDetailAPIView.as_view(),     name='gallery-detail'),
