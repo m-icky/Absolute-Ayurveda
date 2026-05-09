@@ -27,5 +27,5 @@ urlpatterns = [
     path('consultations/',          ConsultationListAPIView.as_view(), name='consultation-list'),
     path('consultations/<int:pk>/', ConsultationDetailAPIView.as_view(), name='consultation-detail'),
 
-    path('auth/setup/', FirstTimeSetupView.as_view(), name='first-time-setup'),
+    # path('auth/setup/', FirstTimeSetupView.as_view(), name='first-time-setup'),
 ]

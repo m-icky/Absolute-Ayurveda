@@ -15,10 +15,21 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
+
 from django.conf import settings
 import base64
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.http import Http404
+from django.core.mail import send_mail, EmailMultiAlternatives
+from email.mime.image import MIMEImage
+import os
+from django.conf import settings
 
 
 class AdminLoginView(APIView):
@@ -61,9 +72,8 @@ class ForgotPasswordView(APIView):
         if not email:
             return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+        user = User.objects.filter(email=email).first()
+        if not user:
             return Response({"success": "If this email exists, a reset link has been sent."}, status=status.HTTP_200_OK)
 
         token     = PasswordResetTokenGenerator().make_token(user)
@@ -71,16 +81,30 @@ class ForgotPasswordView(APIView):
         reset_url = f"{settings.FRONTEND_URL}/admin/reset-password?uid={uid}&token={token}"
 
         try:
-            send_mail(
-                subject="Absolute Ayurveda — Password Reset Request",
-                message=f"Hi {user.username},\n\nClick the link below to reset your password:\n\n{reset_url}\n\nThis link expires in 1 hour. If you did not request this, ignore this email.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                fail_silently=False,
+            forgot_html_content = f"""
+                <p>Hello {user.username},</p>
+                <p>We received a request to reset the password for your Absolute Ayurveda admin account.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{reset_url}" style="background-color: #6b7c5b; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">Reset My Password</a>
+                </div>
+                <p>If the button doesn't work, you can copy and paste the following link directly into your browser:</p>
+                <p style="word-break: break-all; font-size: 14px; background-color: #f9f9f9; padding: 10px; border-radius: 4px; border: 1px solid #eeeeee;">
+                    <a href="{reset_url}" style="color: #6b7c5b;">{reset_url}</a>
+                </p>
+                <p style="margin-top: 30px; font-size: 14px; color: #888888; border-top: 1px solid #eeeeee; padding-top: 15px;">
+                    <em>This reset link will expire securely in 1 hour. If you did not request a password reset, you can safely ignore this email.</em>
+                </p>
+            """
+            send_html_email_with_logo(
+                subject="Password Reset Request",
+                content=forgot_html_content,
+                recipient_list=[email]
             )
         except Exception as e:
-            print("Email error:", e)
-            return Response({"error": "Failed to send email. Check your email configuration."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            import traceback
+            err_msg = traceback.format_exc()
+            print("Email error:", err_msg)
+            return Response({"error": f"Failed to send email. Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({"success": "If this email exists, a reset link has been sent."}, status=status.HTTP_200_OK)
 
@@ -294,7 +318,56 @@ class PackageDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+
+def send_html_email_with_logo(subject, content, recipient_list):
+    html_msg = f"""
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #F7F5F0; padding: 40px 20px; border-radius: 12px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="cid:logo" alt="Absolute Ayurveda" style="max-width: 180px; height: auto;">
+        </div>
+        <div style="background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); color: #333333; line-height: 1.6; font-size: 16px;">
+            <h2 style="color: #6b7c5b; margin-top: 0; margin-bottom: 20px; font-size: 24px;">{subject}</h2>
+            {content}
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eeeeee;">
+                <p style="margin: 0; color: #666666;">Warm regards,</p>
+                <p style="margin: 5px 0 0 0; font-weight: bold; color: #333333;">The Absolute Ayurveda Team</p>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 30px; color: #999999; font-size: 13px;">
+            <p style="margin: 0;">&copy; 2026 Absolute Ayurveda. All rights reserved.</p>
+        </div>
+    </div>
+    """
+
+    msg = EmailMultiAlternatives(
+        subject=subject,
+        body="Your email client does not support HTML emails.",
+        from_email=settings.EMAIL_HOST_USER,
+        to=recipient_list
+    )
+    msg.attach_alternative(html_msg, "text/html")
+    
+    logo_path = os.path.join(settings.BASE_DIR.parent, 'Frontend', 'public', 'absoluteayur.png')
+    try:
+        with open(logo_path, 'rb') as f:
+            logo_image = MIMEImage(f.read())
+            logo_image.add_header('Content-ID', '<logo>')
+            logo_image.add_header('Content-Disposition', 'inline', filename='logo.png')
+            msg.attach(logo_image)
+    except Exception as e:
+        print(f"Failed to attach inline logo: {e}")
+
+    msg.send(fail_silently=True)
+
+
 class ConsultationListAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
     def get(self, request, *args, **kwargs):
         consultations = ConsultationRequest.objects.all().order_by('-created_at')
         serializer = ConsultationRequestSerializer(consultations, many=True)
@@ -302,12 +375,59 @@ class ConsultationListAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         serializer = ConsultationRequestSerializer(data=request.data)
+        
         if serializer.is_valid():
-            serializer.save()
+            consultation = serializer.save()
+
+            user_email = consultation.email
+            user_name = consultation.name
+            admin_email = settings.EMAIL_HOST_USER 
+            
+            if user_email:
+                try:
+                    html_content = f"""
+                        <p>Dear {user_name},</p>
+                        <p>Thank you for reaching out to Absolute Ayurveda!</p>
+                        <p>We have received your consultation request. Our team will carefully review your details and contact you shortly at <strong>{consultation.phone}</strong> to confirm your appointment date and time.</p>
+                    """
+                    send_html_email_with_logo(
+                        subject="Consultation Request Received",
+                        content=html_content,
+                        recipient_list=[user_email]
+                    )
+                except Exception as e:
+                    print(f"Failed to send email to user: {e}")
+
+            try:
+                admin_html_content = f"""
+                    <p>You have a new consultation request!</p>
+                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e0e0e0;">
+                        <h3 style="margin-top: 0; color: #6b7c5b; font-size: 18px;">Patient Details:</h3>
+                        <p style="margin: 5px 0;"><strong>Name:</strong> {user_name}</p>
+                        <p style="margin: 5px 0;"><strong>Phone:</strong> {consultation.phone}</p>
+                        <p style="margin: 5px 0;"><strong>Email:</strong> {user_email or 'N/A'}</p>
+                        <p style="margin: 15px 0 5px 0;"><strong>Message:</strong></p>
+                        <p style="margin: 0; background-color: #ffffff; padding: 10px; border-radius: 4px; border: 1px solid #eeeeee;">{consultation.message or 'No message provided.'}</p>
+                    </div>
+                    <p>Please log in to the Absolute Ayurveda Admin Dashboard to approve or manage this request.</p>
+                """
+                send_html_email_with_logo(
+                    subject=f"New Booking Request: {user_name}",
+                    content=admin_html_content,
+                    recipient_list=[admin_email]
+                )
+            except Exception as e:
+                print(f"Failed to send email to admin: {e}")
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class ConsultationDetailAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def get_object(self, pk):
         try:
             return ConsultationRequest.objects.get(pk=pk)
@@ -316,10 +436,31 @@ class ConsultationDetailAPIView(APIView):
 
     def put(self, request, pk, *args, **kwargs):
         consultation = self.get_object(pk)
+        old_status = consultation.status 
+        
         serializer = ConsultationRequestSerializer(consultation, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            updated_consultation = serializer.save()
+            new_status = updated_consultation.status
+            
+            if old_status != new_status and updated_consultation.email:
+                if new_status == 'approved':
+                    try:
+                        html_content = f"""
+                            <p>Dear {updated_consultation.name},</p>
+                            <p>Good news! Your consultation request has been officially <strong>approved</strong>.</p>
+                            <p>We look forward to seeing you at the clinic. If you have any questions or need to reschedule before your visit, please feel free to contact us at <strong>{updated_consultation.phone}</strong>.</p>
+                        """
+                        send_html_email_with_logo(
+                            subject="Booking Approved!",
+                            content=html_content,
+                            recipient_list=[updated_consultation.email]
+                        )
+                    except Exception as e:
+                        print(f"Failed to send approval email to user: {e}")
+
             return Response(serializer.data)
+            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, *args, **kwargs):
@@ -392,45 +533,45 @@ class AdminProfileView(APIView):
 
 
 
-class FirstTimeSetupView(APIView):
-    def get(self, request):
-        superuser_exists = User.objects.filter(is_superuser=True).exists()
-        return Response({"setup_required": not superuser_exists})
+# class FirstTimeSetupView(APIView):
+#     def get(self, request):
+#         superuser_exists = User.objects.filter(is_superuser=True).exists()
+#         return Response({"setup_required": not superuser_exists})
 
-    def post(self, request):
-        if User.objects.filter(is_superuser=True).exists():
-            return Response(
-                {"error": "Setup has already been completed."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+#     def post(self, request):
+#         if User.objects.filter(is_superuser=True).exists():
+#             return Response(
+#                 {"error": "Setup has already been completed."},
+#                 status=status.HTTP_403_FORBIDDEN,
+#             )
 
-        username         = request.data.get("username", "").strip()
-        email            = request.data.get("email", "").strip()
-        password         = request.data.get("password", "")
-        confirm_password = request.data.get("confirm_password", "")
+#         username         = request.data.get("username", "").strip()
+#         email            = request.data.get("email", "").strip()
+#         password         = request.data.get("password", "")
+#         confirm_password = request.data.get("confirm_password", "")
 
-        if not all([username, email, password, confirm_password]):
-            return Response({"error": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
+#         if not all([username, email, password, confirm_password]):
+#             return Response({"error": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if password != confirm_password:
-            return Response({"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST)
+#         if password != confirm_password:
+#             return Response({"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if len(password) < 8:
-            return Response({"error": "Password must be at least 8 characters."}, status=status.HTTP_400_BAD_REQUEST)
+#         if len(password) < 8:
+#             return Response({"error": "Password must be at least 8 characters."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if User.objects.filter(username=username).exists():
-            return Response({"error": "Username already taken."}, status=status.HTTP_400_BAD_REQUEST)
+#         if User.objects.filter(username=username).exists():
+#             return Response({"error": "Username already taken."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if User.objects.filter(email=email).exists():
-            return Response({"error": "Email already in use."}, status=status.HTTP_400_BAD_REQUEST)
+#         if User.objects.filter(email=email).exists():
+#             return Response({"error": "Email already in use."}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.create_superuser(
-            username=username,
-            email=email,
-            password=password,
-        )
+#         user = User.objects.create_superuser(
+#             username=username,
+#             email=email,
+#             password=password,
+#         )
 
-        return Response(
-            {"success": f"Admin account '{user.username}' created. You can now log in."},
-            status=status.HTTP_201_CREATED,
-        )
+#         return Response(
+#             {"success": f"Admin account '{user.username}' created. You can now log in."},
+#             status=status.HTTP_201_CREATED,
+#         )
