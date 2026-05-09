@@ -1,13 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, notFound } from "next/navigation";
 import { motion } from "framer-motion";
 import { FiEye, FiEyeOff, FiCheck, FiLock } from "react-icons/fi";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function SetupPage() {
+  notFound();
+  return null;
+}
+
+// Disconnected old setup page code:
+function OldSetupPage() {
   const router = useRouter();
 
   const [checking, setChecking] = useState(true);
