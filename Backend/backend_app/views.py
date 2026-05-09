@@ -389,3 +389,48 @@ class AdminProfileView(APIView):
             AdminProfile.objects.update_or_create(user=user, defaults={"phone": phone})
 
         return Response({"success": "Profile updated successfully."})
+
+
+
+class FirstTimeSetupView(APIView):
+    def get(self, request):
+        superuser_exists = User.objects.filter(is_superuser=True).exists()
+        return Response({"setup_required": not superuser_exists})
+
+    def post(self, request):
+        if User.objects.filter(is_superuser=True).exists():
+            return Response(
+                {"error": "Setup has already been completed."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        username         = request.data.get("username", "").strip()
+        email            = request.data.get("email", "").strip()
+        password         = request.data.get("password", "")
+        confirm_password = request.data.get("confirm_password", "")
+
+        if not all([username, email, password, confirm_password]):
+            return Response({"error": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if password != confirm_password:
+            return Response({"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(password) < 8:
+            return Response({"error": "Password must be at least 8 characters."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already taken."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=email).exists():
+            return Response({"error": "Email already in use."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_superuser(
+            username=username,
+            email=email,
+            password=password,
+        )
+
+        return Response(
+            {"success": f"Admin account '{user.username}' created. You can now log in."},
+            status=status.HTTP_201_CREATED,
+        )
