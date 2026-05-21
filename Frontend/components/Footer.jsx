@@ -108,27 +108,63 @@ export default function Footer() {
       </div>
 
       <div style={{ width: "100%", maxWidth: "800px", height: "1px", background: "rgba(201,183,156,0.1)", marginBottom: "10px" }} />
+    
+    <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    flexWrap: "wrap",
+    fontSize: "12px",
+    letterSpacing: "0.5px",
+    textAlign: "center",
+  }}
+>
+  <span>
+    © {new Date().getFullYear()} Absolute Ayurveda. Healing Since 2008.
+  </span>
 
-      <p style={{ fontSize: "12px", letterSpacing: "0.5px" }}>
-        © {new Date().getFullYear()} Absolute Ayurveda. Healing Since 2008.
-      </p>
-      <div style={{ display: "flex"}}>
-        <a href="https://www.cyberprism.in/" style={{ color: "rgba(255,255,255,0.35)", fontSize: "12px", fontFamily: "'Lato', sans-serif", textDecoration: "none" }}>Designed & Developed by <span style={{color: "#90ff7cff"}}>Cyber Prism</span></a>
-      </div>
-      <button
-        onClick={() => handleNavigation("/terms-and-privacy-policy")}
-        style={{
-          color: "rgba(255,255,255,0.4)",
-          fontSize: "11px",
-          fontFamily: "'Lato', sans-serif",
-          textDecoration: "none",
-          letterSpacing: "0.5px",
-          marginTop: "10px"
-        }}
-        className="hover:text-[#C9B79C] transition-colors duration-300 ease-in-out"
-      >
-        Terms & Privacy Policy
-      </button>
+  <span>|</span>
+
+  <button
+    onClick={() => handleNavigation("/terms-and-privacy-policy")}
+    style={{
+      color: "rgba(255,255,255,0.4)",
+      fontSize: "12px",
+      fontFamily: "'Lato', sans-serif",
+      textDecoration: "none",
+      letterSpacing: "0.5px",
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      padding: 0,
+    }}
+    className="hover:text-[#C9B79C] transition-colors duration-300 ease-in-out"
+  >
+    Terms & Privacy Policy
+  </button>
+</div>
+
+<div style={{ display: "flex" }}>
+  <a
+    href="https://www.cyberprism.in/"
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{
+      color: "rgba(255,255,255,0.35)",
+      fontSize: "12px",
+      fontFamily: "'Lato', sans-serif",
+      textDecoration: "none",
+      marginTop: "8px",
+    }}
+  >
+    Designed & Developed by{" "}
+    <span style={{ color: "#90ff7cff" }}>
+      Cyber Prism
+    </span>
+  </a>
+</div>
     </footer>
   );
 }
