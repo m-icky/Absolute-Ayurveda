@@ -11,8 +11,6 @@ const footerLinks = [
   { label: "Courses", href: "/course" },
   { label: "Packages", href: "/packages" },
   { label: "Contact", href: "#contact" },
-  { label: "Terms & Conditions", href: "/terms-and-conditions" },
-  { label: "Privacy Policy", href: "/privacy-policy" },
 ];
 
 export default function Footer() {
@@ -117,6 +115,20 @@ export default function Footer() {
       <div style={{ display: "flex"}}>
         <a href="https://www.cyberprism.in/" style={{ color: "rgba(255,255,255,0.35)", fontSize: "12px", fontFamily: "'Lato', sans-serif", textDecoration: "none" }}>Designed & Developed by <span style={{color: "#90ff7cff"}}>Cyber Prism</span></a>
       </div>
+      <button
+        onClick={() => handleNavigation("/terms-and-privacy-policy")}
+        style={{
+          color: "rgba(255,255,255,0.4)",
+          fontSize: "11px",
+          fontFamily: "'Lato', sans-serif",
+          textDecoration: "none",
+          letterSpacing: "0.5px",
+          marginTop: "10px"
+        }}
+        className="hover:text-[#C9B79C] transition-colors duration-300 ease-in-out"
+      >
+        Terms & Privacy Policy
+      </button>
     </footer>
   );
 }
