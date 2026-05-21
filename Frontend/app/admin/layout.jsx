@@ -11,9 +11,11 @@ export default function AdminLayout({ children }) {
   useEffect(() => {
     const token = sessionStorage.getItem("aa_access");
 
-    // 1. If they are exactly on the login page (/admin)
-    if (pathname === "/admin") {
-      if (token) {
+    // 1. Public paths that don't require authentication
+    const publicPaths = ["/admin", "/admin/reset-password", "/admin/setup"];
+    
+    if (publicPaths.includes(pathname)) {
+      if (token && pathname === "/admin") {
         router.push("/admin/dashboard");
       } else {
         setIsAuthorized(true);
@@ -21,7 +23,7 @@ export default function AdminLayout({ children }) {
       return;
     }
 
-    // 2. If they are anywhere else in the dashboard
+    // 2. If they are anywhere else in the admin section
     if (!token) {
       router.push("/admin"); 
     } else {
