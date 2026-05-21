@@ -11,6 +11,8 @@ const footerLinks = [
   { label: "Courses", href: "/course" },
   { label: "Packages", href: "/packages" },
   { label: "Contact", href: "#contact" },
+  { label: "Terms & Conditions", href: "/terms-and-conditions" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
 ];
 
 export default function Footer() {

@@ -446,10 +446,20 @@ class ConsultationDetailAPIView(APIView):
             if old_status != new_status and updated_consultation.email:
                 if new_status == 'approved':
                     try:
+                        admin_user = request.user
+                        admin_phone = None
+                        if hasattr(admin_user, 'profile') and admin_user.profile.phone:
+                            admin_phone = admin_user.profile.phone
+                            
+                        if admin_phone:
+                            contact_text = f"contact us at <strong>{admin_phone}</strong>."
+                        else:
+                            contact_text = "<strong>Please contact the clinic.</strong>"
+
                         html_content = f"""
                             <p>Dear {updated_consultation.name},</p>
                             <p>Good news! Your consultation request has been officially <strong>approved</strong>.</p>
-                            <p>We look forward to seeing you at the clinic. If you have any questions or need to reschedule before your visit, please feel free to contact us at <strong>{updated_consultation.phone}</strong>.</p>
+                            <p>We look forward to seeing you at the clinic. If you have any questions or need to reschedule before your visit, please feel free to {contact_text}</p>
                         """
                         send_html_email_with_logo(
                             subject="Booking Approved!",
