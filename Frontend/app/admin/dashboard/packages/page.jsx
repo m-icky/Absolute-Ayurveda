@@ -278,14 +278,13 @@ export default function PackagesManagement() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-text mb-1">Price</label>
-                    <input type="text" name="price" value={formData.price} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. $500" />
+                    <input type="text" name="price" value={formData.price} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors" placeholder="e.g. ₹500" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-text mb-1">Status</label>
                     <select name="status" value={formData.status} onChange={handleInputChange} className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors">
                       <option value="active">Active</option>
                       <option value="inactive">Inactive</option>
-                      <option value="draft">Draft</option>
                     </select>
                   </div>
                 </div>
