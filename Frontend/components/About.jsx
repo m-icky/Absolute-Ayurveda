@@ -52,7 +52,7 @@ export default function About() {
             className="about-grid"
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: "1.2fr 1fr",
               gap: "100px",
               alignItems: "center",
             }}
@@ -69,7 +69,7 @@ export default function About() {
                   alt="Absolute Ayurveda"
                   style={{
                     width: "100%",
-                    aspectRatio: "3/4",
+                    aspectRatio: "4/5",
                     objectFit: "cover",
                     display: "block",
                     borderRadius: "8px",
