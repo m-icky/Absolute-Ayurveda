@@ -1,5 +1,5 @@
 "use client";
-
+import aboutImg from "../assets/ayurveda-hero2.png";
 import Reveal from "./Reveal";
 
 const philosophyItems = [
@@ -64,18 +64,25 @@ export default function About() {
                   position: "relative",
                 }}
               >
-                <img
-                  src="/images/about-ayurveda-logo.jpeg"
-                  alt="Absolute Ayurveda"
+                <div
                   style={{
-                    width: "100%",
-                    aspectRatio: "4/5",
-                    objectFit: "cover",
-                    display: "block",
                     borderRadius: "8px",
+                    overflow: "hidden",
                     boxShadow: "0 20px 50px rgba(0,0,0,0.12)",
                   }}
-                />
+                >
+                  <img
+                    src={aboutImg.src || aboutImg}
+                    alt="Absolute Ayurveda"
+                    className="bg-animate"
+                    style={{
+                      width: "100%",
+                      aspectRatio: "4/5",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                </div>
 
                 <div
                   style={{

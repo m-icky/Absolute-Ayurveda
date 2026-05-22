@@ -16,6 +16,7 @@ export default function GalleryManagement() {
   const [formData, setFormData] = useState({ title: "", description: "" });
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
 
   const [deleteAnchorEl, setDeleteAnchorEl] = useState(null);
   const [imgToDelete, setImgToDelete] = useState(null);
@@ -63,12 +64,41 @@ export default function GalleryManagement() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const processFile = (file) => {
+    if (file) {
+      if (file.type.startsWith("image/")) {
+        setSelectedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+      } else {
+        alert("Please upload an image file.");
+      }
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-    }
+    processFile(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    processFile(file);
   };
 
   const handleSubmit = async (e) => {
@@ -231,9 +261,30 @@ export default function GalleryManagement() {
                 <div>
                   <label className="block text-sm font-semibold text-text mb-1">Upload Image</label>
                   <div className="flex items-center gap-4">
-                    <label className="flex-1 cursor-pointer bg-white border border-dashed border-olive p-4 rounded-lg text-center hover:bg-olive/5 transition-colors">
-                      <FiUploadCloud className="mx-auto text-olive mb-2" size={24} />
-                      <span className="text-sm text-text-muted font-lato">{selectedFile ? selectedFile.name : "Click to select a file"}</span>
+                    <label 
+                      onDragOver={handleDragOver}
+                      onDragEnter={handleDragEnter}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`flex-1 cursor-pointer bg-white border border-dashed p-4 rounded-lg text-center transition-all duration-200 ${
+                        isDragging 
+                          ? "border-olive bg-olive/10 border-solid scale-[1.02] shadow-sm" 
+                          : "border-olive hover:bg-olive/5"
+                      }`}
+                    >
+                      <FiUploadCloud className={`mx-auto mb-2 transition-transform duration-200 ${isDragging ? "scale-110 text-olive-dark" : "text-olive"}`} size={24} />
+                      <span className="text-sm text-text-muted font-lato block">
+                        {isDragging ? (
+                          <span className="text-olive font-semibold">Drop the image here!</span>
+                        ) : selectedFile ? (
+                          <span className="text-olive font-semibold">{selectedFile.name}</span>
+                        ) : (
+                          <>
+                            Drag &amp; drop here, or{" "}
+                            <span className="text-olive font-semibold underline">browse</span>
+                          </>
+                        )}
+                      </span>
                       <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                     </label>
                     {previewUrl && (
