@@ -10,6 +10,7 @@ import {
   FiBox, 
   FiCalendar, 
   FiLogOut,
+  FiEdit3,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { logout } from "@/lib/auth";
@@ -24,6 +25,7 @@ export default function Sidebar({ isCollapsed }) {
     { name: "Gallery",       href: "/admin/dashboard/gallery",       icon: FiImage    },
     { name: "Courses",       href: "/admin/dashboard/courses",       icon: FiBook     },
     { name: "Packages",      href: "/admin/dashboard/packages",      icon: FiBox      },
+    { name: "Blogs",         href: "/admin/dashboard/blogs",         icon: FiEdit3    },
     { name: "Consultations", href: "/admin/dashboard/consultations", icon: FiCalendar },
   ];
 

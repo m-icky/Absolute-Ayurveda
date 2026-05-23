@@ -55,19 +55,18 @@ export default function PackageDetailsPage() {
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
   };
 
-  if (isLoading) return <div className="min-h-screen pt-32 text-center text-white" style={{ background: "#6b7c5b" }}>Loading...</div>;
-  if (!pkg) return <div className="min-h-screen pt-32 text-center text-white" style={{ background: "#6b7c5b" }}>Package not found.</div>;
+  if (isLoading) return <div className="min-h-screen pt-32 text-center text-[#1a1a1a]" style={{ background: "#6b7c5b" }}>Loading...</div>;
+  if (!pkg) return <div className="min-h-screen pt-32 text-center text-[#1a1a1a]" style={{ background: "#6b7c5b" }}>Package not found.</div>;
 
   return (
     <>
       <Navbar />
       <main 
-        className="pt-32 pb-20 min-h-screen"   
-        style={{ background: "linear-gradient(to bottom, #6b7c5b, rgba(249, 249, 249, var(--tw-bg-opacity, 1)))" }}
+        className="pt-32 pb-20 min-h-screen bg-[#f8f6f0]"   
       >
         <div className="max-w-5xl mx-auto px-6 md:px-12">
           
-          <Link href="/packages" className="inline-flex items-center text-white hover:text-gray-200 transition-colors mb-10 text-sm tracking-widest uppercase">
+          <Link href="/packages" className="inline-flex items-center text-[#1a1a1a] hover:text-gray-200 transition-colors mb-10 text-sm tracking-widest uppercase">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>

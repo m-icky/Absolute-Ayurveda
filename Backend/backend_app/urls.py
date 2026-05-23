@@ -27,5 +27,8 @@ urlpatterns = [
     path('consultations/',          ConsultationListAPIView.as_view(), name='consultation-list'),
     path('consultations/<int:pk>/', ConsultationDetailAPIView.as_view(), name='consultation-detail'),
 
+    path('blogs/',          BlogPostListCreateAPIView.as_view(), name='blog-list-create'),
+    path('blogs/<int:pk>/', BlogPostDetailAPIView.as_view(),     name='blog-detail'),
+
     # path('auth/setup/', FirstTimeSetupView.as_view(), name='first-time-setup'),
 ]

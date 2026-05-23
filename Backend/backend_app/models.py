@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Specialist(models.Model):
     name = models.CharField(max_length=150)
@@ -70,3 +71,29 @@ class AdminProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} profile"
+
+
+class BlogPost(models.Model):
+    category = models.CharField(max_length=100)
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    excerpt = models.TextField()
+    content = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='blog/')
+    author_name = models.CharField(max_length=100, default='Dr. Naveen Kumar')
+    author_avatar = models.ImageField(upload_to='blog/authors/', blank=True, null=True)
+    date = models.DateField(default=timezone.now)
+    views = models.PositiveIntegerField(default=0)
+    likes = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=20, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title

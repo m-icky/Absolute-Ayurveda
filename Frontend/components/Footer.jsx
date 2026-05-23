@@ -10,6 +10,7 @@ const footerLinks = [
   { label: "Facilities", href: "#facilities" },
   { label: "Courses", href: "/course" },
   { label: "Packages", href: "/packages" },
+  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -148,7 +149,7 @@ export default function Footer() {
 
 <div style={{ display: "flex" }}>
   <a
-    href="https://www.cyberprism.in/"
+    href="https://www.leonine.in/"
     target="_blank"
     rel="noopener noreferrer"
     style={{
@@ -160,8 +161,8 @@ export default function Footer() {
     }}
   >
     Designed & Developed by{" "}
-    <span style={{ color: "#90ff7cff" }}>
-      Cyber Prism
+    <span style={{ color: "#a8fc99ff" }}>
+      Leonine
     </span>
   </a>
 </div>

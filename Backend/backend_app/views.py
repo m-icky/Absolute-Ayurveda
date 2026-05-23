@@ -585,3 +585,47 @@ class AdminProfileView(APIView):
 #             {"success": f"Admin account '{user.username}' created. You can now log in."},
 #             status=status.HTTP_201_CREATED,
 #         )
+
+
+class BlogPostListCreateAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get(self, request, *args, **kwargs):
+        posts = BlogPost.objects.all().order_by('-date', '-created_at')
+        serializer = BlogPostSerializer(posts, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = BlogPostSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BlogPostDetailAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get_object(self, pk):
+        try:
+            return BlogPost.objects.get(pk=pk)
+        except BlogPost.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, *args, **kwargs):
+        post = self.get_object(pk)
+        serializer = BlogPostSerializer(post, context={'request': request})
+        return Response(serializer.data)
+
+    def put(self, request, pk, *args, **kwargs):
+        post = self.get_object(pk)
+        serializer = BlogPostSerializer(post, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, *args, **kwargs):
+        post = self.get_object(pk)
+        post.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
