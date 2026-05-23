@@ -50,20 +50,23 @@ class courses(models.Model):
     def __str__(self):
         return f"{self.title} ({self.status})"
 
+from django.db import models
+
+
 class Packages(models.Model):
-    heading = models.CharField(max_length=200)
     title = models.CharField(max_length=200)
-    description = models.TextField()
-    image = models.ImageField(upload_to='packages/')
-    price = models.CharField(max_length=20,null=True, blank=True)
-    status = models.CharField(max_length=20,default='active')
+    main_description = models.TextField(blank=True, null=True)
+    sections = models.JSONField(default=list)  # [{"heading": "...", "description": "..."}, ...]
+    image = models.ImageField(upload_to='packages/', null=True, blank=True)
+    price = models.CharField(max_length=20, null=True, blank=True)
+    status = models.CharField(max_length=20, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.title} ({self.status})"
-
-
+    
+    
 
 class AdminProfile(models.Model):
     user  = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')

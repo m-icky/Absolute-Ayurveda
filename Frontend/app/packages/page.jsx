@@ -86,15 +86,6 @@ export default function PackagesPage() {
                     
                     <div className={styles.content}>
                       
-                      {/* HEADING FIRST */}
-                      <div className={styles.tags} style={{ marginBottom: "12px" }}>
-                        {pkg.heading && (
-                          <span className={styles.tag} style={{ backgroundColor: '#c9b79c', color: 'rgba(0,0,0,0.7)' }}>
-                            {pkg.heading}
-                          </span>
-                        )}
-                      </div>
-
                       {/* TITLE SECOND */}
                       <h3 className={styles.title}>{pkg.title}</h3>
                       

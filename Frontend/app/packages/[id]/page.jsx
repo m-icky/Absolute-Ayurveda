@@ -38,13 +38,16 @@ export default function PackageDetailsPage() {
     return imagePath.startsWith('http') ? imagePath : `${SERVER_URL}${imagePath}`;
   };
 
-  // Function to generate the WhatsApp link with pre-filled message
   const getWhatsAppLink = (packageData) => {
     let text = `Hello! I would like to book the following package:\n\n`;
     text += `*Package:* ${packageData.title}\n`;
     
-    if (packageData.heading) {
-      text += `*Category:* ${packageData.heading}\n`;
+    const categories = packageData.sections && packageData.sections.length > 0 
+      ? packageData.sections.map(s => s.heading).filter(Boolean).join(", ") 
+      : packageData.heading;
+
+    if (categories) {
+      text += `*Category:* ${categories}\n`;
     }
     if (packageData.price) {
       text += `*Price:* ${packageData.price}\n`;
@@ -91,23 +94,32 @@ export default function PackageDetailsPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="flex gap-3 mb-6">
-                 {pkg.heading && (
-                   <span className="text-xs font-bold tracking-widest px-3 py-1 rounded" style={{ backgroundColor: '#c9b79c', color: 'rgba(0,0,0,0.7)' }}>
-                     {pkg.heading}
-                   </span>
-                 )}
-              </div>
-              
               <h1 className="text-5xl font-light text-[#1a1a1a] mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
                 {pkg.title}
               </h1>
               
               <div className="w-16 h-px bg-[#000000] mb-8"></div>
               
-              <p className="text-gray-600 text-lg leading-relaxed mb-4 whitespace-pre-wrap">
-                {pkg.description}
-              </p>
+              {pkg.main_description && (
+                <p className="text-gray-600 text-lg leading-relaxed mb-8 whitespace-pre-wrap">
+                  {pkg.main_description}
+                </p>
+              )}
+
+              {pkg.sections && pkg.sections.length > 0 ? (
+                <div className="space-y-6 mb-8">
+                  {pkg.sections.map((sec, idx) => (
+                    <div key={idx}>
+                      {sec.heading && <h3 className="text-xl font-semibold text-[#1a1a1a] mb-2">{sec.heading}</h3>}
+                      {sec.description && <p className="text-gray-600 text-lg leading-relaxed whitespace-pre-wrap">{sec.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : pkg.description ? (
+                <p className="text-gray-600 text-lg leading-relaxed mb-4 whitespace-pre-wrap">
+                  {pkg.description}
+                </p>
+              ) : null}
               
               
               {pkg.price && (
