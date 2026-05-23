@@ -100,6 +100,12 @@ export default function PackageDetailsPage() {
               
               <div className="w-16 h-px bg-[#000000] mb-8"></div>
               
+              {pkg.main_description && (
+                <p className="text-gray-600 text-lg leading-relaxed mb-8 whitespace-pre-wrap">
+                  {pkg.main_description}
+                </p>
+              )}
+
               {pkg.sections && pkg.sections.length > 0 ? (
                 <div className="space-y-6 mb-8">
                   {pkg.sections.map((sec, idx) => (

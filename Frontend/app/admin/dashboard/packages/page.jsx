@@ -13,6 +13,7 @@ const defaultSection = { heading: "", description: "" };
 
 const defaultFormData = {
   title: "",
+  main_description: "",
   price: "",
   status: "active",
   image: null,
@@ -118,6 +119,7 @@ export default function PackagesManagement() {
 
     setFormData({
       title: pkg.title || "",
+      main_description: pkg.main_description || "",
       price: pkg.price || "",
       status: pkg.status || "active",
       image: null,
@@ -135,6 +137,7 @@ export default function PackagesManagement() {
 
     const submitData = new FormData();
     submitData.append("title", formData.title);
+    if (formData.main_description) submitData.append("main_description", formData.main_description);
     if (formData.price) submitData.append("price", formData.price);
     submitData.append("status", formData.status);
     // Send sections as JSON string; parse in your Django view
@@ -197,6 +200,7 @@ export default function PackagesManagement() {
                   <tr className="bg-cream/50 text-text-muted text-sm font-lato uppercase tracking-wider border-b border-border">
                     <th className="px-6 py-4 font-semibold">Image</th>
                     <th className="px-6 py-4 font-semibold">Title</th>
+                    <th className="px-6 py-4 font-semibold">Main Description</th>
                     <th className="px-6 py-4 font-semibold min-w-[300px]">Sections Details</th>
                     <th className="px-6 py-4 font-semibold">Price</th>
                     <th className="px-6 py-4 font-semibold">Status</th>
@@ -221,6 +225,9 @@ export default function PackagesManagement() {
                         )}
                       </td>
                       <td className="px-6 py-4 font-medium text-text min-w-[150px]">{pkg.title}</td>
+                      <td className="px-6 py-4 text-sm text-text-muted max-w-[200px] truncate" title={pkg.main_description}>
+                        {pkg.main_description || "—"}
+                      </td>
                       <td className="px-6 py-4">
                         {pkg.sections && pkg.sections.length > 0 ? (
                           <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
@@ -314,6 +321,19 @@ export default function PackagesManagement() {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors"
                         placeholder="e.g. Detox Package"
+                      />
+                    </div>
+
+                    {/* Main Description */}
+                    <div>
+                      <label className="block text-sm font-semibold text-text mb-1">Main Description</label>
+                      <textarea
+                        name="main_description"
+                        value={formData.main_description}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-olive transition-colors bg-white text-sm"
+                        placeholder="Enter the main description for the package..."
+                        rows={3}
                       />
                     </div>
 

@@ -55,6 +55,7 @@ from django.db import models
 
 class Packages(models.Model):
     title = models.CharField(max_length=200)
+    main_description = models.TextField(blank=True, null=True)
     sections = models.JSONField(default=list)  # [{"heading": "...", "description": "..."}, ...]
     image = models.ImageField(upload_to='packages/', null=True, blank=True)
     price = models.CharField(max_length=20, null=True, blank=True)
