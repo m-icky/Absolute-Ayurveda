@@ -38,8 +38,7 @@ export default function PackagesPage() {
     <>
       <Navbar />
       <main 
-        className="pt-32 pb-20 min-h-screen"   
-        style={{ background: "linear-gradient(to bottom, #6b7c5b, rgba(249, 249, 249, var(--tw-bg-opacity, 1)))" }}
+        className="pt-32 pb-20 min-h-screen bg-[#f8f6f0]"   
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <motion.div
@@ -48,18 +47,21 @@ export default function PackagesPage() {
             transition={{ duration: 0.6 }}
             className="mb-16 flex flex-col items-center"
           >
-            <h1 className="text-5xl md:text-6xl font-light text-white mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Special Ayurveda <span className="italic text-[#c9b79c]">programs</span>
+            <h1 className="text-5xl md:text-6xl font-light text-[#1a1a1a]" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Special Ayurveda <span className="italic text-[#c9b79c]">Programs</span>
             </h1>
-            <p className="text-white max-w-2xl text-lg">
+
+            {/* Decorative Divider */}
+            <div className="w-[60px] h-[1px] bg-[#c9b79c] mx-auto my-6" />
+            <p className="text-sm md:text-base text-gray-500 font-light max-w-2xl mx-auto leading-relaxed">
               Discover our programs with our range of treatments.
             </p>
           </motion.div>
 
           {isLoading ? (
-            <div className="text-white text-center text-xl">Loading packages...</div>
+            <div className="text-[#1a1a1a] text-center text-xl">Loading packages...</div>
           ) : packages.length === 0 ? (
-            <div className="text-white text-center text-xl">No packages available.</div>
+            <div className="text-[#1a1a1a] text-center text-xl">No packages available.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {packages.map((pkg, index) => (

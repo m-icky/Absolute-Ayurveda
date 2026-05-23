@@ -6,7 +6,7 @@ def create_default_superuser(sender, **kwargs):
     
     default_username = "admin"
     default_email = "admin@gmail.com"
-    default_password = "AbsoluteAdmin2026"
+    default_password = "http://localhost:3000/blog"
 
     if not User.objects.filter(username=default_username).exists():
         User.objects.create_superuser(username=default_username, email=default_email, password=default_password)

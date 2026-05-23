@@ -15,11 +15,63 @@ const API_BASE_URL = "http://localhost:8000/api/consultations/";
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [errors, setErrors] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const validate = (field, value) => {
+    let error = "";
+    if (field === "name") {
+      if (!value.trim()) {
+        error = "Name is required.";
+      } else if (value.trim().length < 2) {
+        error = "Name must be at least 2 characters.";
+      } else if (!/^[a-zA-Z\s]+$/.test(value)) {
+        error = "Name can only contain letters and spaces.";
+      }
+    } else if (field === "email") {
+      if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        error = "Please enter a valid email address.";
+      }
+    } else if (field === "phone") {
+      if (!value.trim()) {
+        error = "Phone number is required.";
+      } else if (!/^\+?[0-9\s\-()]{10,20}$/.test(value)) {
+        error = "Please enter a valid phone number (at least 10 digits).";
+      }
+    } else if (field === "message") {
+      if (value && value.length > 1000) {
+        error = "Message cannot exceed 1000 characters.";
+      }
+    }
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return error;
+  };
+
+  const handleBlur = (field) => {
+    validate(field, form[field]);
+  };
+
+  const handleChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate all fields first
+    const nameErr = validate("name", form.name);
+    const emailErr = validate("email", form.email);
+    const phoneErr = validate("phone", form.phone);
+    const msgErr = validate("message", form.message);
+
+    if (nameErr || emailErr || phoneErr || msgErr) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -86,7 +138,7 @@ export default function Contact() {
                   <p style={{ fontSize: "14px", color: "#6B6B6B", lineHeight: 1.9 }}>Your message has been received. We will be in touch shortly.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} noValidate>
                   {[
                     { label: "Your Name", key: "name", type: "text", placeholder: "Full name", required: true },
                     { label: "Email Address", key: "email", type: "email", placeholder: "your@email.com", required: false },
@@ -99,11 +151,19 @@ export default function Contact() {
                         type={f.type}
                         placeholder={f.placeholder}
                         value={form[f.key]}
-                        onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                        style={{ width: "100%", border: "none", borderBottom: "1px solid #E2DADA", background: "transparent", padding: "10px 0", fontFamily: "'Lato', sans-serif", fontSize: "15px", fontWeight: 300, color: "#1A1A1A", outline: "none" }}
+                        onChange={(e) => handleChange(f.key, e.target.value)}
+                        style={{ width: "100%", border: "none", borderBottom: errors[f.key] ? "1px solid #C84B31" : "1px solid #E2DADA", background: "transparent", padding: "10px 0", fontFamily: "'Lato', sans-serif", fontSize: "15px", fontWeight: 300, color: "#1A1A1A", outline: "none" }}
                         onFocus={(e) => (e.target.style.borderBottomColor = "#6B7C5B")}
-                        onBlur={(e) => (e.target.style.borderBottomColor = "#E2DADA")}
+                        onBlur={(e) => {
+                          const error = validate(f.key, form[f.key]);
+                          e.target.style.borderBottomColor = error ? "#C84B31" : "#E2DADA";
+                        }}
                       />
+                      {errors[f.key] && (
+                        <span style={{ display: "block", fontSize: "11px", color: "#C84B31", marginTop: "6px", fontFamily: "'Lato', sans-serif", fontWeight: 400, letterSpacing: "0.5px" }}>
+                          {errors[f.key]}
+                        </span>
+                      )}
                     </div>
                   ))}
                   <div style={{ marginBottom: "28px" }}>
@@ -111,12 +171,20 @@ export default function Contact() {
                     <textarea
                       placeholder="Tell us about your healing intentions..."
                       value={form.message}
-                      onChange={(e) => setForm({ ...form, message: e.target.value })}
+                      onChange={(e) => handleChange("message", e.target.value)}
                       rows={4}
-                      style={{ width: "100%", border: "none", borderBottom: "1px solid #E2DADA", background: "transparent", padding: "10px 0", fontFamily: "'Lato', sans-serif", fontSize: "15px", fontWeight: 300, color: "#1A1A1A", outline: "none", resize: "none" }}
+                      style={{ width: "100%", border: "none", borderBottom: errors.message ? "1px solid #C84B31" : "1px solid #E2DADA", background: "transparent", padding: "10px 0", fontFamily: "'Lato', sans-serif", fontSize: "15px", fontWeight: 300, color: "#1A1A1A", outline: "none", resize: "none" }}
                       onFocus={(e) => (e.target.style.borderBottomColor = "#6B7C5B")}
-                      onBlur={(e) => (e.target.style.borderBottomColor = "#E2DADA")}
+                      onBlur={(e) => {
+                        const error = validate("message", form.message);
+                        e.target.style.borderBottomColor = error ? "#C84B31" : "#E2DADA";
+                      }}
                     />
+                    {errors.message && (
+                      <span style={{ display: "block", fontSize: "11px", color: "#C84B31", marginTop: "6px", fontFamily: "'Lato', sans-serif", fontWeight: 400, letterSpacing: "0.5px" }}>
+                        {errors.message}
+                      </span>
+                    )}
                   </div>
                   <button
                     type="submit"

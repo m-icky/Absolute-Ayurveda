@@ -71,23 +71,25 @@ Could you please provide more details?`;
     <>
       <Navbar />
       <div 
-        className="pt-32 pb-20 px-4 min-h-screen flex flex-col items-center" 
-        style={{ background: "linear-gradient(to bottom, #6b7c5b, rgba(249, 249, 249, var(--tw-bg-opacity, 1)))" }}
+        className="pt-32 pb-20 px-4 min-h-screen flex flex-col items-center bg-[#f8f6f0]" 
       >
         <h1 
-          className="text-white text-4xl md:text-5xl lg:text-6xl text-center mb-6"
+          className="text-[#1a1a1a] text-4xl md:text-5xl lg:text-6xl text-center"
           style={{ fontFamily: "'Playfair Display', serif" }}
         >
           School of <span className="italic text-[#c9b79c]">Ayurveda</span>
         </h1>
-        <p className="text-white text-center w-[60%] mb-16 font-light">
+
+        {/* Decorative Divider */}
+        <div className="w-[60px] h-[1px] bg-[#c9b79c] mx-auto my-6" />
+        <p className="text-sm md:text-base text-gray-500 font-light max-w-2xl mx-auto leading-relaxed mb-10">
           Not just techniques—an invitation to embrace Ayurveda as a complete way of life.
         </p>
         
         {isLoading ? (
-          <div className="text-white font-lato">Loading courses...</div>
+          <div className="text-[#1a1a1a] font-lato">Loading courses...</div>
         ) : courses.length === 0 ? (
-          <div className="text-white font-lato">No active courses available at the moment.</div>
+          <div className="text-[#1a1a1a] font-lato">No active courses available at the moment.</div>
         ) : (
           /* Container for the multiple rows */
           <div className="flex flex-col gap-10 w-full max-w-7xl items-center">

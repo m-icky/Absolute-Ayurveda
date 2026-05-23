@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 const links = [
   { label: "Home", href: "#home" },
@@ -10,11 +10,13 @@ const links = [
   { label: "Facilities", href: "#facilities" },
   { label: "Course", href: "/course" },
   { label: "Packages", href: "/packages" },
+  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "#contact" },
 ];
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -23,6 +25,8 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const isScrolled = pathname !== "/" || scrolled;
 
   const scrollTo = (href) => {
     setMenuOpen(false);
@@ -53,11 +57,11 @@ export default function Navbar() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: scrolled ? "5px 60px" : "10px 60px",
-          background: scrolled ? "rgba(255,255,255,0.75)" : "rgba(255, 255, 255, 0.06)",
+          padding: isScrolled ? "5px 60px" : "10px 60px",
+          background: isScrolled ? "rgba(255,255,255,0.75)" : "rgba(255, 255, 255, 0.06)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
-          borderBottom: scrolled ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.1)",
+          borderBottom: isScrolled ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.1)",
           boxShadow: "0 4px 30px rgba(0,0,0,0.1)",
           transition: "all 0.5s ease",
         }}
@@ -90,7 +94,7 @@ export default function Navbar() {
                   fontSize: "11px",
                   letterSpacing: "2.5px",
                   textTransform: "uppercase",
-                  color: scrolled ? "#6B6B6B" : "rgba(255,255,255,0.85)",
+                  color: isScrolled ? "#6B6B6B" : "rgba(255,255,255,0.85)",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
@@ -98,10 +102,10 @@ export default function Navbar() {
                   padding: "0",
                 }}
                 onMouseEnter={(e) =>
-                  (e.target.style.color = scrolled ? "#6B7C5B" : "white")
+                  (e.target.style.color = isScrolled ? "#6B7C5B" : "white")
                 }
                 onMouseLeave={(e) =>
-                  (e.target.style.color = scrolled
+                  (e.target.style.color = isScrolled
                     ? "#6B6B6B"
                     : "rgba(255,255,255,0.85)")
                 }
@@ -122,8 +126,8 @@ export default function Navbar() {
             letterSpacing: "2px",
             textTransform: "uppercase",
             padding: "10px 24px",
-            border: `1px solid ${scrolled ? "#C9B79C" : "rgba(255,255,255,0.6)"}`,
-            color: scrolled ? "#1A1A1A" : "white",
+            border: `1px solid ${isScrolled ? "#C9B79C" : "rgba(255,255,255,0.6)"}`,
+            color: isScrolled ? "#1A1A1A" : "white",
             background: "transparent",
             cursor: "pointer",
             transition: "all 0.4s",
@@ -135,10 +139,10 @@ export default function Navbar() {
           }}
           onMouseLeave={(e) => {
             e.target.style.background = "transparent";
-            e.target.style.borderColor = scrolled
+            e.target.style.borderColor = isScrolled
               ? "#C9B79C"
               : "rgba(255,255,255,0.6)";
-            e.target.style.color = scrolled ? "#1A1A1A" : "white";
+            e.target.style.color = isScrolled ? "#1A1A1A" : "white";
           }}
         >
           Book a Consultation
@@ -155,7 +159,7 @@ export default function Navbar() {
               style={{
                 width: "22px",
                 height: "1px",
-                background: scrolled ? "#1A1A1A" : "white",
+                background: isScrolled ? "#1A1A1A" : "white",
                 display: "block",
                 transition: "all 0.3s",
               }}

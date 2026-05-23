@@ -40,18 +40,52 @@ http://localhost:3000
 
 ```text
 absolute-ayurveda/
-├── Frontend/             # Next.js Application
-│   ├── app/              # App Router (Pages, Layouts)
-│   ├── components/       # Reusable React Components
-│   ├── public/           # Static Assets
-│   ├── styles/           # Global CSS
-│   ├── next.config.js    # Next.js configuration
-│   └── package.json      # Frontend dependencies
+├── Frontend/                      # Next.js 14 Frontend Application
+│   ├── app/                       # Next.js App Router (Pages, Layouts, Metadata)
+│   │   ├── admin/                 # Admin Authentication & Dashboard
+│   │   │   ├── change-password/   # Change Password screen
+│   │   │   ├── dashboard/         # Core Admin Dashboard (Blogs, Packages management)
+│   │   │   ├── reset-password/    # Reset Password flow
+│   │   │   ├── setup/             # Admin initial setup
+│   │   │   └── layout.jsx         # Admin-specific layout
+│   │   ├── blog/                  # Blog listings & single posts
+│   │   ├── course/                # Ayurveda courses & curriculum details
+│   │   ├── packages/              # Treatment & healing packages
+│   │   ├── terms-and-privacy-policy/ # Legal and policy pages
+│   │   ├── layout.jsx             # Main site layout (Header, Footer, Global SEO)
+│   │   ├── page.jsx               # Main homepage
+│   │   ├── sitemap.js             # Dynamic SEO sitemap generator
+│   │   └── robots.js              # Search engine robots configuration
+│   ├── components/                # Reusable UI Components
+│   │   ├── Navbar.jsx             # Scrolled/transparent transition navbar
+│   │   ├── BlogCard.jsx           # Premium aesthetic blog card design
+│   │   └── About.jsx              # Brand/philosophy section component
+│   ├── assets/                    # Project-level static UI assets (images, SVGs)
+│   ├── lib/                       # Utility libraries and API connection helpers
+│   ├── public/                    # Standard Next.js static asset folder
+│   ├── styles/                    # Global stylesheet & Tailwind CSS configurations
+│   ├── tailwind.config.js         # Tailwind styling custom design tokens
+│   ├── next.config.js             # Next.js configuration
+│   └── package.json               # Frontend dependencies & scripts
 │
-├── Backend/              # Django Application
-│   ├── backend_project/  # Core Django settings
-│   ├── manage.py         # Django management script
-│   └── .env              # Environment variables
+├── Backend/                       # Django REST API Backend Application
+│   ├── backend_project/           # Core Django settings folder
+│   │   ├── settings.py            # Global settings (CORS, REST Framework, DB)
+│   │   ├── urls.py                # Main project-level routing mapping
+│   │   └── wsgi.py / asgi.py      # App deployment servers configurations
+│   ├── backend_app/               # Primary Django App (API logic & schemas)
+│   │   ├── models.py              # DB schema (Specialists, Courses, Packages, Blogs)
+│   │   ├── views.py               # REST API endpoints & business logic handlers
+│   │   ├── serializers.py         # JSON serializers for frontend-backend communication
+│   │   ├── urls.py                # App-level API route registrations
+│   │   ├── admin.py               # Django Admin customization
+│   │   └── migrations/            # Django database auto-generated migration scripts
+│   ├── requirements.txt           # Python application package dependencies
+│   ├── manage.py                  # Django CLI management executable
+│   └── .env                       # Environment configuration files
+│
+├── package.json                   # Root workspace config (monorepo scripts)
+└── README.md                      # Project documentation and setup guides
 ```
 
 ## 🏛 Architecture

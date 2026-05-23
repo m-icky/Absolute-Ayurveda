@@ -110,14 +110,6 @@ export default function Team() {
                   <img
                     src={imageUrl}
                     alt={photo.title || `Gallery photo ${photo.id}`}
-                    style={{ 
-                      maxWidth: "100%", 
-                      maxHeight: "100%", 
-                      // NEW: objectFit contain guarantees the full image is visible
-                      objectFit: "contain",
-                      display: "block",
-                      zIndex: 1
-                    }}
                   />
 
                   {/* Dynamic overlay on hover pulling from Django backend */}
