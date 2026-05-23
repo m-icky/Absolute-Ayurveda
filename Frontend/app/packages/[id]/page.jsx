@@ -66,7 +66,7 @@ export default function PackageDetailsPage() {
       >
         <div className="max-w-5xl mx-auto px-6 md:px-12">
           
-          <Link href="/packages" className="inline-flex items-center text-[#1a1a1a] hover:text-gray-200 transition-colors mb-10 text-sm tracking-widest uppercase">
+          <Link href="/packages" className="inline-flex items-center text-[#6b7c5b] hover:text-[#1a1a1a] transition-colors mb-10 text-sm tracking-widest uppercase">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
