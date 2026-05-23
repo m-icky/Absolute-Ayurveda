@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import *
+import json
+
 
 class GallerySerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,11 +22,48 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'description', 'image', 'duration', 'level', 'status', 'created_at', 'updated_at']
 
         
+
+
 class PackageSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False, allow_null=True)
+
     class Meta:
         model = Packages
         fields = '__all__'
 
+    def to_internal_value(self, data):
+        """
+        sections arrives as a JSON string when sent via FormData.
+        Parse it into a Python list before validation.
+        """
+        # Convert to a standard dictionary to avoid QueryDict list-assignment quirks
+        mutable_data = {}
+        for key in data.keys():
+            # .get() on a QueryDict returns the last value, which is usually correct
+            # for single-valued fields and files in this context.
+            mutable_data[key] = data.get(key)
+
+        raw_sections = mutable_data.get('sections')
+        if isinstance(raw_sections, str):
+            try:
+                mutable_data['sections'] = json.loads(raw_sections)
+            except (json.JSONDecodeError, TypeError):
+                raise serializers.ValidationError({'sections': 'Invalid JSON format.'})
+
+        return super().to_internal_value(mutable_data)
+
+    def validate_sections(self, value):
+        """Ensure sections is a list of dicts with heading and description."""
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Sections must be a list.")
+        for i, section in enumerate(value):
+            if not isinstance(section, dict):
+                raise serializers.ValidationError(f"Section {i + 1} must be an object.")
+            if not section.get('heading', '').strip():
+                raise serializers.ValidationError(f"Section {i + 1} heading is required.")
+            if not section.get('description', '').strip():
+                raise serializers.ValidationError(f"Section {i + 1} description is required.")
+        return value
 
 
 class ConsultationRequestSerializer(serializers.ModelSerializer):
