@@ -11,7 +11,8 @@
     "dev": "npx concurrently \"npm run frontend\" \"npm run backend\"",
     "install-all": "npm install && cd Frontend && npm install",
     "migrate": "cd Backend && py manage.py makemigrations && py manage.py migrate",
-    "start": "npm run install-all && npm run migrate && npm run dev"
+    "build": "npm run build -w Frontend",
+    "start": "npm run start -w Frontend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
