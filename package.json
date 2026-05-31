@@ -11,8 +11,22 @@
     "dev": "npx concurrently \"npm run frontend\" \"npm run backend\"",
     "install-all": "npm install && cd Frontend && npm install",
     "migrate": "cd Backend && py manage.py makemigrations && py manage.py migrate",
-    "build": "npm run build -w Frontend",
-    "start": "npm run start -w Frontend"
+    "build": "cd Frontend && npm run build",
+    "start": "cd Frontend && npm run start"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.0.0",
+    "framer-motion": "^11.2.10",
+    "gsap": "^3.15.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "next": "14.2.3",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-icons": "^5.6.0",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
