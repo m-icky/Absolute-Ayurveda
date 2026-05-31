@@ -11,7 +11,7 @@
     "dev": "npx concurrently \"npm run frontend\" \"npm run backend\"",
     "install-all": "npm install && cd Frontend && npm install",
     "migrate": "cd Backend && py manage.py makemigrations && py manage.py migrate",
-    "build": "cd Frontend && npm run build",
+    "build": "cd Frontend && npm run build && cd .. && rm -rf .next public && cp -r Frontend/.next .next && cp -r Frontend/public public",
     "start": "cd Frontend && npm run start"
   },
   "dependencies": {
