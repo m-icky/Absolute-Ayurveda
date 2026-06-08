@@ -6,7 +6,7 @@ import { FiCheckCircle, FiXCircle, FiTrash2, FiEye, FiX, FiCalendar, FiUser, FiP
 import { Popover } from "@mui/material";
 import Preloader from "@/components/Preloader";
 
-const API_BASE_URL = "http://127.0.0.1:8000/api/consultations/";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/consultations/`;
 
 export default function ConsultationsManagement() {
   const [consultations, setConsultations] = useState([]);

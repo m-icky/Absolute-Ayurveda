@@ -5,8 +5,8 @@ import Footer from "../../components/Footer";
 import { useState, useEffect } from "react";
 
 // Configuration for your local Django backend
-const API_BASE_URL = "http://127.0.0.1:8000/api/courses/";
-const SERVER_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/courses/`;
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 const WHATSAPP_NUMBER = "919995267659";
 
 // Helper function to split array into chunks of 5

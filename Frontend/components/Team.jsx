@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Reveal from "./Reveal";
 
-const API_BASE_URL = "http://localhost:8000/api/gallery/";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/gallery/`;
 
 // Curated aspect ratios for that elegant, varied masonry grid
 const premiumAspectRatios = ["3/4", "8/6", "6/7", "1/1", "4/3", "1/1"];
@@ -83,7 +83,7 @@ export default function Team() {
             // Handle Django's relative image paths
             const imageUrl = photo.image?.startsWith('http') 
               ? photo.image 
-              : `http://localhost:8000${photo.image}`;
+              : `${process.env.NEXT_PUBLIC_SERVER_URL}${photo.image}`;
 
             return (
               <Reveal key={photo.id} delay={minDelay(i)}>

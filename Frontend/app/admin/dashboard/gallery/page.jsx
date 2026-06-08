@@ -6,7 +6,7 @@ import { FiUploadCloud, FiTrash2, FiX, FiImage } from "react-icons/fi";
 import { Popover } from "@mui/material";
 import Preloader from "@/components/Preloader";
 
-const API_BASE_URL = "http://localhost:8000/api/gallery/"; 
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/gallery/`;
 
 export default function GalleryManagement() {
   const [images, setImages] = useState([]);
@@ -191,7 +191,7 @@ export default function GalleryManagement() {
                </div>
                {/* Prepend domain if relative URL from Django */}
                <img 
-                 src={img.image?.startsWith('http') ? img.image : `http://localhost:8000${img.image}`} 
+                 src={img.image?.startsWith('http') ? img.image : `${process.env.NEXT_PUBLIC_SERVER_URL}${img.image}`} 
                  alt={img.title} 
                  className="max-h-full object-contain" 
                />

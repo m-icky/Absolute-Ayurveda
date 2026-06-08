@@ -7,7 +7,7 @@ import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import { useEffect, useState } from "react";
 
-const SERVER_URL = "http://127.0.0.1:8000";
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 // Replace this with your actual WhatsApp number
 const WHATSAPP_NUMBER = "919995267659"; 
 

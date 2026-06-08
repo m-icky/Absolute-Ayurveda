@@ -6,7 +6,7 @@ import { FiPlus, FiEdit, FiTrash2, FiX, FiUploadCloud } from "react-icons/fi";
 import { Popover } from "@mui/material";
 import Preloader from "@/components/Preloader";
 
-const API_BASE_URL = "http://localhost:8000/api/courses/";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/courses/`;
 
 export default function CoursesManagement() {
   const [courses, setCourses] = useState([]);
@@ -195,7 +195,7 @@ export default function CoursesManagement() {
                   <td className="px-6 py-4">
                     {course.image ? (
                        <img 
-                         src={course.image.startsWith('http') ? course.image : `http://localhost:8000${course.image}`} 
+                         src={course.image.startsWith('http') ? course.image : `${process.env.NEXT_PUBLIC_SERVER_URL}${course.image}`} 
                          alt={course.title} 
                          className="w-12 h-12 rounded object-cover border border-border" 
                        />
