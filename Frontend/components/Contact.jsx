@@ -11,7 +11,7 @@ const contactDetails = [
   { label: "Healing Hours", value: "Monday – Saturday\n8:00 AM – 6:00 PM" },
 ];
 
-const API_BASE_URL = "http://localhost:8000/api/consultations/";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/consultations/`;
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });

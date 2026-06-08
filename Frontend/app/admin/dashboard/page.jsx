@@ -8,7 +8,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Preloader from "@/components/Preloader";
 
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 export default function DashboardOverview() {
   const [reportType, setReportType] = useState("Daily");

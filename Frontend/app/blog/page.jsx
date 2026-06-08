@@ -97,7 +97,7 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/blogs/");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blogs/`);
         if (response.ok) {
           const data = await response.json();
           // Filter to active articles
@@ -108,11 +108,11 @@ export default function BlogPage() {
           if (activePosts.length > 0) {
             // Map relative image/avatar URLs to absolute paths
             const mappedPosts = activePosts.map((p) => {
-              const postImg = p.image && !p.image.startsWith("http") ? `http://localhost:8000${p.image}` : p.image;
+              const postImg = p.image && !p.image.startsWith("http") ? `${process.env.NEXT_PUBLIC_SERVER_URL}${p.image}` : p.image;
               
               let authorAvatar = p.author?.avatar;
               if (authorAvatar && !authorAvatar.startsWith("http")) {
-                authorAvatar = `http://localhost:8000${authorAvatar}`;
+                authorAvatar = `${process.env.NEXT_PUBLIC_SERVER_URL}${authorAvatar}`;
               }
 
               return {

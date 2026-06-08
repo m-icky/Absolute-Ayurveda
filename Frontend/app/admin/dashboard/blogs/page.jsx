@@ -6,7 +6,7 @@ import { FiPlus, FiEdit, FiTrash2, FiX, FiUploadCloud, FiEye, FiHeart, FiUser } 
 import { Popover } from "@mui/material";
 import Preloader from "@/components/Preloader";
 
-const API_BASE_URL = "http://localhost:8000/api/blogs/";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/blogs/`;
 
 export default function BlogsManagement() {
   const [posts, setPosts] = useState([]);
@@ -195,7 +195,7 @@ export default function BlogsManagement() {
 
   const getImageUrl = (path) => {
     if (!path) return "";
-    return path.startsWith("http") ? path : `http://localhost:8000${path}`;
+    return path.startsWith("http") ? path : `${process.env.NEXT_PUBLIC_SERVER_URL}${path}`;
   };
 
   return (

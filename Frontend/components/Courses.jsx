@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 // Configuration for your local Django backend
-const API_BASE_URL = "http://127.0.0.1:8000/api/courses/";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/courses/`;
 
 export default function Courses() {
   const router = useRouter();
