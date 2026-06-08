@@ -55,6 +55,7 @@ from django.db import models
 
 class Packages(models.Model):
     title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
     main_description = models.TextField(blank=True, null=True)
     sections = models.JSONField(default=list)  # [{"heading": "...", "description": "..."}, ...]
     image = models.ImageField(upload_to='packages/', null=True, blank=True)
@@ -62,6 +63,12 @@ class Packages(models.Model):
     status = models.CharField(max_length=20, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title} ({self.status})"

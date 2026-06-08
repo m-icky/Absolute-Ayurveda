@@ -3,21 +3,36 @@ import React, { useState } from "react";
 import { FaRegEye, FaRegHeart, FaHeart, FaRegEnvelope, FaShareAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 export default function BlogCard({ post }) {
   const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(post.likes || 42);
+  const [likesCount, setLikesCount] = useState(post.likes || 0);
+  const [viewsCount, setViewsCount] = useState(post.views || 0);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
   const [showMailTooltip, setShowMailTooltip] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleLike = (e) => {
+  const handleLike = async (e) => {
     e.stopPropagation();
-    if (liked) {
-      setLiked(false);
-      setLikesCount((prev) => prev - 1);
-    } else {
-      setLiked(true);
-      setLikesCount((prev) => prev + 1);
+    const action = liked ? "unlike" : "like";
+    // Optimistic UI update
+    setLiked(!liked);
+    setLikesCount((prev) => liked ? prev - 1 : prev + 1);
+    try {
+      const res = await fetch(`${API_BASE}/blogs/${post.id}/like/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLikesCount(data.likes);
+      }
+    } catch (err) {
+      // Revert on error
+      setLiked(liked);
+      setLikesCount((prev) => liked ? prev + 1 : prev - 1);
     }
   };
 
@@ -44,7 +59,17 @@ export default function BlogCard({ post }) {
   return (
     <>
       <div 
-        onClick={() => setIsOpen(true)}
+      onClick={async () => {
+        setIsOpen(true);
+        // Increment view count on open
+        try {
+          const res = await fetch(`${API_BASE}/blogs/${post.id}/view/`, { method: "POST" });
+          if (res.ok) {
+            const data = await res.json();
+            setViewsCount(data.views);
+          }
+        } catch (err) { /* silent */ }
+      }}
         className="group w-full max-w-[900px] bg-white rounded-none shadow-[0_15px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.12)] flex flex-col md:flex-row relative mt-16 mb-8 p-6 md:p-8 min-h-[300px] transition-all duration-500 ease-out border border-[#e2dada]/40 cursor-pointer"
         style={{ fontFamily: "'Lato', sans-serif" }}
       >
@@ -82,9 +107,9 @@ export default function BlogCard({ post }) {
             <div className="flex items-center gap-4 text-gray-400 text-lg mb-1 relative">
               
               {/* Views counter */}
-              <div className="flex items-center gap-1 group/item cursor-default" title={`${post.views} Views`}>
+              <div className="flex items-center gap-1 group/item cursor-default" title={`${viewsCount} Views`}>
                 <FaRegEye className="text-gray-400 group-hover/item:text-[#6b7c5b] transition-colors duration-300" />
-                <span className="text-[11px] text-gray-400 font-medium select-none">{post.views}</span>
+                <span className="text-[11px] text-gray-400 font-medium select-none">{viewsCount}</span>
               </div>
 
               {/* Like Button */}
@@ -256,7 +281,7 @@ export default function BlogCard({ post }) {
                   {/* Views / Likes counter */}
                   <div className="flex items-center gap-5 text-gray-500 text-xs md:text-sm">
                     <span className="flex items-center gap-1.5 font-light">
-                      <FaRegEye className="text-gray-400 text-base" /> {post.views} Views
+                      <FaRegEye className="text-gray-400 text-base" /> {viewsCount} Views
                     </span>
                     <span className="flex items-center gap-1.5 font-light">
                       <FaRegHeart className="text-gray-400 text-base" /> {likesCount} Likes

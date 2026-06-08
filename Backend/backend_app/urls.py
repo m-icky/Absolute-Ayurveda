@@ -23,12 +23,15 @@ urlpatterns = [
 
     path('packages/',          PackageListCreateView.as_view(), name='package-list'),
     path('packages/<int:pk>/', PackageDetailView.as_view(),     name='package-detail'),
+    path('packages/<slug:slug>/', PackageBySlugView.as_view(),  name='package-by-slug'),
 
     path('consultations/',          ConsultationListAPIView.as_view(), name='consultation-list'),
     path('consultations/<int:pk>/', ConsultationDetailAPIView.as_view(), name='consultation-detail'),
 
     path('blogs/',          BlogPostListCreateAPIView.as_view(), name='blog-list-create'),
     path('blogs/<int:pk>/', BlogPostDetailAPIView.as_view(),     name='blog-detail'),
+    path('blogs/<int:pk>/view/', BlogPostViewCountView.as_view(), name='blog-view-count'),
+    path('blogs/<int:pk>/like/', BlogPostLikeView.as_view(),     name='blog-like'),
 
     # path('auth/setup/', FirstTimeSetupView.as_view(), name='first-time-setup'),
 ]

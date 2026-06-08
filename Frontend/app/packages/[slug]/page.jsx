@@ -12,15 +12,15 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 const WHATSAPP_NUMBER = "919995267659"; 
 
 export default function PackageDetailsPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [pkg, setPkg] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
+    if (slug) {
       const fetchSinglePackage = async () => {
         try {
-          const response = await fetch(`${SERVER_URL}/api/packages/${id}/`);
+          const response = await fetch(`${SERVER_URL}/api/packages/${slug}/`);
           const data = await response.json();
           setPkg(data);
         } catch (error) {
@@ -31,7 +31,7 @@ export default function PackageDetailsPage() {
       };
       fetchSinglePackage();
     }
-  }, [id]);
+  }, [slug]);
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "";
