@@ -76,7 +76,7 @@ export default function PackageDetailsPage() {
             Back to Packages
           </Link>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 gap-16 items-center">
             
             {/* Left Column: Image with Slide-in Animation */}
             <motion.div
