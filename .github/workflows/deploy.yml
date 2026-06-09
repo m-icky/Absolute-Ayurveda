@@ -31,11 +31,12 @@ jobs:
           script: |
             # Backend
             cd /var/www/html/Absolute-Ayurveda/Backend
-            python3 manage.py migrate
+            python3 manage.py makemigrate
+            python3 manage.py makemigrations
 
             # Frontend
-            cd /var/www/html/Absolute-Ayurveda
-            npm install
+            cd /var/www/html/Absolute-Ayurveda/Frontend
+            npm install --force
             npm run build
 
             # Restart PM2
