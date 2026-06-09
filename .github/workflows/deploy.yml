@@ -1,0 +1,42 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Copy files to server
+        uses: appleboy/scp-action@master
+        with:
+          host: 88.222.215.246
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "."
+          target: "/var/www/html/Absolute-Ayurveda"
+
+      - name: Deploy Application
+        uses: appleboy/ssh-action@master
+        with:
+          host: 88.222.215.246
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # Backend
+            cd /var/www/html/Absolute-Ayurveda/Backend
+            python3 manage.py migrate
+
+            # Frontend
+            cd /var/www/html/Absolute-Ayurveda
+            npm install
+            npm run build
+
+            # Restart PM2
+            pm2 restart absolute-ayurveda
