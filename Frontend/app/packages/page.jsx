@@ -76,7 +76,7 @@ export default function PackagesPage() {
                       <img src={getImageUrl(pkg.image)} alt={pkg.title} className={styles.imgElement} />
                       <div className={styles.cutout}>
                         {/* Links to the specific ID */}
-                        <Link href={`/packages/${pkg.id}`} className={styles.arrowButton} style={{ backgroundColor: "#6b7c5b" }}>
+                        <Link href={`/packages/${pkg.slug}`} className={styles.arrowButton} style={{ backgroundColor: "#6b7c5b" }}>
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M7 17L17 7M17 7H7M17 7V17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>

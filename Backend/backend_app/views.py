@@ -309,6 +309,18 @@ class PackageDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class PackageBySlugView(APIView):
+    """Public endpoint: fetch a single package by its slug."""
+
+    def get(self, request, slug):
+        try:
+            package = Packages.objects.get(slug=slug)
+        except Packages.DoesNotExist:
+            return Response({"error": "Package not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = PackageSerializer(package, context={'request': request})
+        return Response(serializer.data)
+
+
 
 def send_html_email_with_logo(subject, content, recipient_list):
     html_msg = f"""
@@ -620,3 +632,36 @@ class BlogPostDetailAPIView(APIView):
         post = self.get_object(pk)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BlogPostViewCountView(APIView):
+    """Public endpoint: increment view count when a blog post is opened."""
+    permission_classes = [AllowAny]
+
+    def post(self, request, pk, *args, **kwargs):
+        try:
+            post = BlogPost.objects.get(pk=pk)
+        except BlogPost.DoesNotExist:
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        post.views += 1
+        post.save(update_fields=['views'])
+        return Response({"views": post.views})
+
+
+class BlogPostLikeView(APIView):
+    """Public endpoint: increment or decrement like count."""
+    permission_classes = [AllowAny]
+
+    def post(self, request, pk, *args, **kwargs):
+        try:
+            post = BlogPost.objects.get(pk=pk)
+        except BlogPost.DoesNotExist:
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        action = request.data.get("action", "like")   # "like" or "unlike"
+        if action == "unlike" and post.likes > 0:
+            post.likes -= 1
+        else:
+            post.likes += 1
+        post.save(update_fields=['likes'])
+        return Response({"likes": post.likes})
