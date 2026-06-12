@@ -2,12 +2,12 @@
 
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 // Configuration for your local Django backend
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/courses/`;
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
-const WHATSAPP_NUMBER = "919995267659";
 
 // Helper function to split array into chunks of 5
 const chunkArray = (arr, size) => {
@@ -50,18 +50,6 @@ export default function CoursePage() {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80";
     return imagePath.startsWith('http') ? imagePath : `${SERVER_URL}${imagePath}`;
-  };
-
-  const getWhatsAppLink = (course) => {
-    const text = `Hello! I would like to enquire about the following course:
-    
-Course: ${course.title}
-Description: ${course.description || course.desc}
-Duration: ${course.duration}
-
-Could you please provide more details?`;
-
-    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
   };
 
   // Group our courses into rows of 5
@@ -108,7 +96,7 @@ Could you please provide more details?`;
                   return (
                     <div
                       key={course.id || colIndex}
-                      // Update the active state for just THIS row
+                      // Update the active state for just THIS row on click (but don't navigate)
                       onClick={() => setActiveCards(prev => ({ ...prev, [rowIndex]: colIndex }))}
                       className={`relative rounded-[40px] md:rounded-[60px] cursor-pointer overflow-hidden bg-cover bg-center bg-no-repeat transition-all duration-700 ease-in-out bg-gray-800 ${
                         isActive ? "flex-[5]" : "flex-[1]"
@@ -120,31 +108,38 @@ Could you please provide more details?`;
                       {/* Dark overlay for contrast */}
                       <div className={`absolute inset-0 bg-black/40 transition-opacity duration-700 ${isActive ? "opacity-30" : "opacity-80"}`} />
                       
-                      {/* Active Content */}
+                      {/* Active Content — only title shown, image is the clickable link */}
                       <div 
-                        className={`absolute bottom-8 md:bottom-12 left-8 md:left-12 right-8 md:right-12 text-white transition-all duration-500 ${
+                        className={`absolute bottom-8 md:bottom-20 left-8 md:left-12 right-8 md:right-12 text-white transition-all duration-500 ${
                           isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
                         }`}
                       >
                         <h3 className="text-2xl md:text-4xl font-semibold mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
                           {course.title}
                         </h3>
-                        <p className="text-sm md:text-base text-gray-200 mb-4 max-w-md italic font-light line-clamp-3">
-                          &ldquo;{course.description || course.desc}&rdquo;
-                        </p>
-                        <p className="text-sm md:text-base font-medium text-[#C9B79C]">
-                          {course.duration}
-                        </p>
                       </div>
 
-                      {/* WhatsApp Enquire Button */}
-                      <div className={`absolute bottom-8 md:bottom-12 right-8 md:right-12 transition-opacity duration-300 ${
+                      {/* Bottom row: Enquire button + View Details link */}
+                      <div className={`absolute bottom-8 md:bottom-8 left-8 md:left-12 right-8 md:right-12 flex items-center justify-between transition-opacity duration-300 ${
                         isActive ? "opacity-100 delay-500" : "opacity-0 pointer-events-none"
                       }`}>
-                        <a 
-                          href={getWhatsAppLink(course)} 
-                          target="_blank" 
+                        {/* View Full Details — navigates to course/[slug] */}
+                        {course.slug && (
+                          <Link
+                            href={`/course/${course.slug}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-white/80 text-xs tracking-widest uppercase border-b border-white/40 hover:text-white hover:border-white transition-all duration-300"
+                          >
+                            View Details →
+                          </Link>
+                        )}
+
+                        {/* Enquire on WhatsApp */}
+                        <a
+                          href={`https://wa.me/919995267659?text=${encodeURIComponent(`Hello! I would like to enquire about the course: ${course.title}\n\nCould you please provide more details?`)}`}
+                          target="_blank"
                           rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <button className="bg-[#D2B48C] text-[#1A1A1A] px-8 py-3 rounded-full text-sm font-medium hover:bg-white transition-all duration-300 shadow-xl">
                             Enquire on WhatsApp
@@ -152,7 +147,7 @@ Could you please provide more details?`;
                         </a>
                       </div>
 
-                      {/* Vertical Text */}
+                      {/* Vertical Text (collapsed state) */}
                       <div
                         className={`hidden md:block absolute bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap -rotate-90 origin-center text-white/40 font-bold tracking-[0.2em] uppercase text-xs transition-opacity duration-300 ${
                           isActive ? "opacity-0" : "opacity-100 delay-300"

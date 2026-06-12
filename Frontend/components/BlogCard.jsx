@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import { FaRegEye, FaRegHeart, FaHeart, FaRegEnvelope, FaShareAlt } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -11,7 +12,6 @@ export default function BlogCard({ post }) {
   const [viewsCount, setViewsCount] = useState(post.views || 0);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
   const [showMailTooltip, setShowMailTooltip] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
 
   const handleLike = async (e) => {
     e.stopPropagation();
@@ -58,19 +58,9 @@ export default function BlogCard({ post }) {
 
   return (
     <>
-      <div 
-      onClick={async () => {
-        setIsOpen(true);
-        // Increment view count on open
-        try {
-          const res = await fetch(`${API_BASE}/blogs/${post.id}/view/`, { method: "POST" });
-          if (res.ok) {
-            const data = await res.json();
-            setViewsCount(data.views);
-          }
-        } catch (err) { /* silent */ }
-      }}
-        className="group w-full max-w-[900px] bg-white rounded-none shadow-[0_15px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.12)] flex flex-col md:flex-row relative mt-16 mb-8 p-6 md:p-8 min-h-[300px] transition-all duration-500 ease-out border border-[#e2dada]/40 cursor-pointer"
+      <Link href={`/blog/${post.slug}`} className="block w-full max-w-[900px]">
+      <div
+        className="group w-full bg-white rounded-none shadow-[0_15px_35px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.12)] flex flex-col md:flex-row relative mt-16 mb-8 p-6 md:p-8 min-h-[300px] transition-all duration-500 ease-out border border-[#e2dada]/40 cursor-pointer"
         style={{ fontFamily: "'Lato', sans-serif" }}
       >
         {/* Left Column: Image, Date, Socials */}
@@ -212,117 +202,7 @@ export default function BlogCard({ post }) {
 
         </div>
       </div>
-
-      {/* --- DETAILED VIEW MODAL --- */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsOpen(false)}
-            className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 md:p-6"
-          >
-            <motion.div
-              initial={{ y: 50, opacity: 0, scale: 0.95 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 50, opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[850px] h-[90vh] bg-[#f8f6f0] shadow-2xl flex flex-col relative overflow-hidden border border-[#e2dada]/40 rounded-xl"
-            >
-              {/* Close button */}
-              <button
-                onClick={() => setIsOpen(false)}
-                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white border-none cursor-pointer flex items-center justify-center text-lg transition-colors z-30"
-              >
-                ✕
-              </button>
-
-              {/* Scrollable Container */}
-              <div className="flex-1 overflow-y-auto">
-                {/* Hero Banner */}
-                <div className="relative h-[250px] md:h-[380px] w-full overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col justify-end p-6 md:p-10">
-                    <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-[3px] text-[#c9b79c] mb-2 select-none">
-                      {post.category}
-                    </span>
-                    <h2 
-                      className="text-2xl md:text-4xl font-semibold text-white leading-tight"
-                      style={{ fontFamily: "'Playfair Display', serif" }}
-                    >
-                      {post.title}
-                    </h2>
-                  </div>
-                </div>
-
-                {/* Author & Stats Meta Bar */}
-                <div className="px-6 md:px-10 py-5 border-b border-gray-200/60 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  {/* Author detail info */}
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={post.author.avatar}
-                      alt={post.author.name}
-                      className="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-[#6b7c5b] tracking-wide">{post.author.name}</span>
-                      <span className="text-[11px] text-gray-400 font-light font-lato">
-                        Published on {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Views / Likes counter */}
-                  <div className="flex items-center gap-5 text-gray-500 text-xs md:text-sm">
-                    <span className="flex items-center gap-1.5 font-light">
-                      <FaRegEye className="text-gray-400 text-base" /> {viewsCount} Views
-                    </span>
-                    <span className="flex items-center gap-1.5 font-light">
-                      <FaRegHeart className="text-gray-400 text-base" /> {likesCount} Likes
-                    </span>
-                  </div>
-                </div>
-
-                {/* Article Main Text Content */}
-                <div className="px-6 md:px-10 py-8 md:py-10 text-gray-700 leading-relaxed font-light text-sm md:text-base font-sans select-text">
-                  {/* Excerpt intro block */}
-                  <p 
-                    className="text-base md:text-lg text-[#6b7c5b] italic font-normal pl-4 border-l-4 border-[#c9b79c] mb-8 leading-relaxed font-lato"
-                  >
-                    {post.excerpt}
-                  </p>
-
-                  {/* Complete text body parsed with clean spacing */}
-                  <div className="space-y-6 font-lato text-gray-600">
-                    {post.content ? (
-                      post.content.split("\n\n").map((para, i) => (
-                        <p key={i} className="leading-loose">{para}</p>
-                      ))
-                    ) : (
-                      // Safe dynamic layout fallback 
-                      <>
-                        <p className="leading-loose">
-                          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                        </p>
-                        <p className="leading-loose">
-                          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </Link>
     </>
   );
 }

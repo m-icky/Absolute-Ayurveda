@@ -19,7 +19,7 @@ class SpecialistSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = courses
-        fields = ['id', 'title', 'description', 'image', 'duration', 'level', 'status', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'slug', 'description', 'image', 'duration', 'level', 'status', 'created_at', 'updated_at']
 
         
 
