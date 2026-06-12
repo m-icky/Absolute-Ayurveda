@@ -39,13 +39,20 @@ class ConsultationRequest(models.Model):
 
 class courses(models.Model):
     title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
     description = models.TextField()
     image = models.ImageField(upload_to='courses/')
     duration = models.CharField(max_length=50)
     level = models.CharField(max_length=20)
-    status = models.CharField(max_length=20,default='active')
+    status = models.CharField(max_length=20, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title} ({self.status})"

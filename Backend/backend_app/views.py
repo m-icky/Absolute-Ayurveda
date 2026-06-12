@@ -255,6 +255,16 @@ class CourseDetailAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class CourseBySlugView(APIView):
+    """Public endpoint: fetch a single course by its slug."""
+
+    def get(self, request, slug):
+        try:
+            course = courses.objects.get(slug=slug)
+        except courses.DoesNotExist:
+            return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CourseSerializer(course, context={'request': request})
+        return Response(serializer.data)
 
 
 class PackageListCreateView(APIView):
@@ -665,3 +675,49 @@ class BlogPostLikeView(APIView):
             post.likes += 1
         post.save(update_fields=['likes'])
         return Response({"likes": post.likes})
+
+
+class BlogBySlugView(APIView):
+    """Public endpoint: fetch a single blog post by its slug."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, slug, *args, **kwargs):
+        try:
+            post = BlogPost.objects.get(slug=slug)
+        except BlogPost.DoesNotExist:
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = BlogPostSerializer(post, context={'request': request})
+        return Response(serializer.data)
+
+
+class BlogBySlugViewCountView(APIView):
+    """Public endpoint: increment view count for a blog post by slug."""
+    permission_classes = [AllowAny]
+
+    def post(self, request, slug, *args, **kwargs):
+        try:
+            post = BlogPost.objects.get(slug=slug)
+        except BlogPost.DoesNotExist:
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        post.views += 1
+        post.save(update_fields=['views'])
+        return Response({"views": post.views})
+
+
+class BlogBySlugLikeView(APIView):
+    """Public endpoint: like/unlike a blog post by slug."""
+    permission_classes = [AllowAny]
+
+    def post(self, request, slug, *args, **kwargs):
+        try:
+            post = BlogPost.objects.get(slug=slug)
+        except BlogPost.DoesNotExist:
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        action = request.data.get("action", "like")
+        if action == "unlike" and post.likes > 0:
+            post.likes -= 1
+        else:
+            post.likes += 1
+        post.save(update_fields=['likes'])
+        return Response({"likes": post.likes})
+
